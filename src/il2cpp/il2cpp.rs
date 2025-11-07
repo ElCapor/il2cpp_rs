@@ -177,4 +177,8 @@ impl<'a> Il2Cpp<'a> {
             })
         }
     }
+
+    pub fn print_all_function_ptrs(&self) {
+        self.api.print_all_function_ptrs();
+    }
 }
