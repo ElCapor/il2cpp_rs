@@ -117,7 +117,7 @@ impl Cache {
                 field,
                 name,
                 Type::default(),
-                class.clone(),
+                class.address,
                 0,
                 false,
                 std::ptr::null_mut(),

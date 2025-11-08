@@ -1,4 +1,4 @@
-use parking_lot::Mutex;
+use parking_lot::RwLock;
 use std::collections::HashMap;
 use std::sync::{Arc, LazyLock};
 use win32_sys::{get_module_from_name, resolve_function_ptr_from_name};
@@ -583,11 +583,12 @@ impl Il2CppDll {
 }
 
 unsafe impl Send for Il2CppDll {}
+unsafe impl Sync for Il2CppDll {}
 
 pub fn initialize_il2cpp(module_name: &str) -> Result<(), String> {
     match get_module_from_name(module_name) {
         Ok(module) => {
-            let mut dll = IL2CPP_MODULE.lock();
+            let mut dll = IL2CPP_MODULE.write();
             dll.name = module_name.to_string();
             dll.module = module;
 
@@ -606,40 +607,29 @@ pub fn initialize_il2cpp(module_name: &str) -> Result<(), String> {
     }
 }
 
-pub fn invoke<T>(name: &str) -> Result<T, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.invoke::<T>(name)
-}
-
 // public functions
 pub fn il2cpp_init() -> Result<(), String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_init()
+    IL2CPP_MODULE.read().il2cpp_init()
 }
 
 pub fn il2cpp_shutdown() -> Result<(), String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_shutdown()
+    IL2CPP_MODULE.read().il2cpp_shutdown()
 }
 
 pub fn il2cpp_domain_get() -> Result<Il2CppDomain, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_domain_get()
+    IL2CPP_MODULE.read().il2cpp_domain_get()
 }
 
 pub fn il2cpp_thread_attach(domain: Il2CppDomain) -> Result<(), String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_thread_attach(domain)
+    IL2CPP_MODULE.read().il2cpp_thread_attach(domain)
 }
 
 pub fn il2cpp_thread_detach(domain: Il2CppDomain) -> Result<(), String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_thread_detach(domain)
+    IL2CPP_MODULE.read().il2cpp_thread_detach(domain)
 }
 
 pub fn il2cpp_assembly_get_image(assembly: Il2CppAssembly) -> Result<Il2CppImage, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_assembly_get_image(assembly)
+    IL2CPP_MODULE.read().il2cpp_assembly_get_image(assembly)
 }
 
 pub fn il2cpp_class_from_name(
@@ -647,111 +637,98 @@ pub fn il2cpp_class_from_name(
     namespace: *const i8,
     name: *const i8,
 ) -> Result<Il2CppClass, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_class_from_name(image, namespace, name)
+    IL2CPP_MODULE
+        .read()
+        .il2cpp_class_from_name(image, namespace, name)
 }
 
 pub fn il2cpp_class_get_methods(
     klass: Il2CppClass,
     iter: *mut usize,
 ) -> Result<Il2CppMethodInfo, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_class_get_methods(klass, iter)
+    IL2CPP_MODULE.read().il2cpp_class_get_methods(klass, iter)
 }
 
 pub fn il2cpp_class_get_name(klass: Il2CppClass) -> Result<*const i8, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_class_get_name(klass)
+    IL2CPP_MODULE.read().il2cpp_class_get_name(klass)
 }
 
 pub fn il2cpp_class_get_namespace(klass: Il2CppClass) -> Result<*const i8, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_class_get_namespace(klass)
+    IL2CPP_MODULE.read().il2cpp_class_get_namespace(klass)
 }
 
 pub fn il2cpp_class_get_parent(klass: Il2CppClass) -> Result<Il2CppClass, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_class_get_parent(klass)
+    IL2CPP_MODULE.read().il2cpp_class_get_parent(klass)
 }
 
 pub fn il2cpp_method_get_name(method: Il2CppMethodInfo) -> Result<*const i8, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_method_get_name(method)
+    IL2CPP_MODULE.read().il2cpp_method_get_name(method)
 }
 
 pub fn il2cpp_domain_get_assemblies(
     domain: Il2CppDomain,
     size: *mut usize,
 ) -> Result<*mut Il2CppAssembly, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_domain_get_assemblies(domain, size)
+    IL2CPP_MODULE
+        .read()
+        .il2cpp_domain_get_assemblies(domain, size)
 }
 
 pub fn il2cpp_image_get_name(image: Il2CppImage) -> Result<*const i8, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_image_get_name(image)
+    IL2CPP_MODULE.read().il2cpp_image_get_name(image)
 }
 
 pub fn il2cpp_image_get_filename(image: Il2CppImage) -> Result<*const i8, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_image_get_filename(image)
+    IL2CPP_MODULE.read().il2cpp_image_get_filename(image)
 }
 
 pub fn il2cpp_image_get_class(image: Il2CppImage, index: usize) -> Result<Il2CppClass, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_image_get_class(image, index)
+    IL2CPP_MODULE.read().il2cpp_image_get_class(image, index)
 }
 
 pub fn il2cpp_image_get_class_count(image: Il2CppImage) -> Result<usize, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_image_get_class_count(image)
+    IL2CPP_MODULE.read().il2cpp_image_get_class_count(image)
 }
 
 pub fn il2cpp_class_get_fields(klass: Il2CppClass, iter: *mut *mut u8) -> Result<*mut u8, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_class_get_fields(klass, iter)
+    IL2CPP_MODULE.read().il2cpp_class_get_fields(klass, iter)
 }
 
 pub fn il2cpp_field_get_name(field: *mut u8) -> Result<*const i8, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_field_get_name(field)
+    IL2CPP_MODULE.read().il2cpp_field_get_name(field)
 }
 
 pub fn il2cpp_field_get_offset(field: *mut u8) -> Result<u32, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_field_get_offset(field)
+    IL2CPP_MODULE.read().il2cpp_field_get_offset(field)
 }
 
 pub fn il2cpp_method_get_param_count(method: Il2CppMethodInfo) -> Result<u32, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_method_get_param_count(method)
+    IL2CPP_MODULE.read().il2cpp_method_get_param_count(method)
 }
 
 pub fn il2cpp_method_get_param_name(
     method: Il2CppMethodInfo,
     index: u32,
 ) -> Result<*const i8, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_method_get_param_name(method, index)
+    IL2CPP_MODULE
+        .read()
+        .il2cpp_method_get_param_name(method, index)
 }
 
 pub fn il2cpp_method_get_return_type(method: Il2CppMethodInfo) -> Result<Il2CppType, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_method_get_return_type(method)
+    IL2CPP_MODULE.read().il2cpp_method_get_return_type(method)
 }
 
 pub fn il2cpp_type_get_name(itype: Il2CppType) -> Result<*const i8, String> {
-    let dll = IL2CPP_MODULE.lock();
-    dll.il2cpp_type_get_name(itype)
+    IL2CPP_MODULE.read().il2cpp_type_get_name(itype)
 }
 
 pub fn il2cpp_print_all_function_ptrs() {
-    let dll = IL2CPP_MODULE.lock();
-    dll.print_all_functions();
+    IL2CPP_MODULE.read().print_all_functions();
 }
 
-static IL2CPP_MODULE: LazyLock<Arc<Mutex<Il2CppDll>>> =
-    LazyLock::new(|| Arc::new(Mutex::new(Il2CppDll::default())));
+static IL2CPP_MODULE: LazyLock<Arc<RwLock<Il2CppDll>>> =
+    LazyLock::new(|| Arc::new(RwLock::new(Il2CppDll::default())));
 
 static IL2CPP_FUNCTIONS_NAMES: LazyLock<Vec<String>> = LazyLock::new(|| {
     Vec::from([
