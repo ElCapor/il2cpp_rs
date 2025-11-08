@@ -14,10 +14,11 @@ pub fn entry_point() {
         exit(-1);
     }
     println!("Initializing Il2CppApi...");
-    let mut api = IL2CPP_API.lock();
-    //api.get_api().unwrap().print_all_function_ptrs();
+    let mut unity_resolve = IL2CPP_API.lock();
+    let api = unity_resolve.get_api().unwrap();
+    let domain = unity_resolve.get_domain().unwrap();
 
-    match api.init() {
+    match unity_resolve.init() {
         Ok(_) => {
             println!("Initializing Il2CppApi... Done");
         }
@@ -25,6 +26,8 @@ pub fn entry_point() {
             println!("Failed init {}", e);
         }
     }
+
+    api.print_all_function_ptrs();
 
     wait_line_press_to_exit(-1);
 }

@@ -1,3 +1,5 @@
+use crate::il2cpp::classes::assembly::Assembly;
+
 use super::il2cpp::Il2Cpp;
 use super::il2cpp_sys::Il2CppApi;
 use parking_lot::Mutex;
@@ -20,6 +22,7 @@ pub static IL2CPP_API: std::sync::LazyLock<Arc<Mutex<UnityResolve<'static>>>> =
 pub struct UnityResolve<'a> {
     api: Option<&'a Il2Cpp<'a>>,
     p_domain: Option<*mut u8>,
+    assemblies: Vec<Assembly>,
 }
 
 impl<'a> UnityResolve<'a> {
@@ -27,6 +30,7 @@ impl<'a> UnityResolve<'a> {
         Self {
             api: None,
             p_domain: None,
+            assemblies: Vec::new(),
         }
     }
 
@@ -34,6 +38,7 @@ impl<'a> UnityResolve<'a> {
         Self {
             api,
             p_domain: Some(std::ptr::null_mut()),
+            assemblies: Vec::new(),
         }
     }
 
@@ -85,14 +90,55 @@ impl<'a> UnityResolve<'a> {
         if let Some(domain) = api.get_domain() {
             self.p_domain = Some(domain);
             api.thread_attach(domain);
+            match self.cache_assemblies() {
+                Err(e) => return Err(e),
+                Ok(_) => {}
+            }
         } else {
             return Err("Could not get domain".to_string());
         }
         Ok(())
     }
 
+    pub fn cache_assemblies(&mut self) -> Result<(), String> {
+        let api = match self.api {
+            Some(a) => a,
+            None => return Err("api was none".to_string()),
+        };
+
+        let domain = match self.p_domain {
+            Some(a) => a,
+            None => return Err("domain was none".to_string()),
+        };
+
+        let assemblies = api.domain_get_assemblies(domain);
+        for assembly in assemblies {
+            if let Some(image) = api.assembly_get_image(assembly) {
+                let name = api.image_get_name(image);
+                if name.is_none() {
+                    continue;
+                }
+                let filename = api.image_get_filename(image);
+                if filename.is_none() {
+                    continue;
+                }
+                let mut asm = Assembly::new(
+                    image,
+                    String::from(name.unwrap()),
+                    String::from(filename.unwrap()),
+                );
+                self.assemblies.push(asm);
+            }
+        }
+        Ok(())
+    }
+
     pub fn get_api(&self) -> Option<&'a Il2Cpp<'a>> {
         self.api
+    }
+
+    pub fn get_domain(&self) -> Option<*mut u8> {
+        self.p_domain
     }
 }
 
