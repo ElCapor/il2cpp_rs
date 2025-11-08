@@ -2,6 +2,8 @@
 
 This repo is currently in development and is not ready for production use.
 
+Windows ONLY
+
 I wrote it in a single day with 15 hours of work.
 # il2cpp_rs
 
@@ -131,9 +133,11 @@ use il2cpp_rs::il2cpp;
 use il2cpp_rs::il2cpp_cache::Cache;
 
 fn example() -> Result<(), String> {
+    il2cpp::init("GameAssembly.dll")?;
     let domain = il2cpp::get_domain()?;
     il2cpp::thread_attach(domain)?;
 
+    // the cache is the structure that contains all the assemblies, classes, fields, and methods
     let cache = Cache::new(domain)?;
     // Debug printing is available via Debug impls
     // println!("{:?}", cache);
