@@ -77,7 +77,7 @@ impl Il2CppDll {
             functions: Il2CppFunctions::default(),
         }
     }
-
+    #[allow(dead_code)]
     pub fn new(module_name: &str) -> Result<Self, String> {
         match get_module_from_name(module_name) {
             Ok(module) => Ok(Self {
@@ -160,9 +160,7 @@ impl Il2CppDll {
         for name in IL2CPP_FUNCTIONS_NAMES.iter() {
             // this will cache all the functions
             match self.invoke_mut::<FARPROC>(name) {
-                Ok(addr) => {
-                    //self.cache.insert(name.to_string(), addr);
-                }
+                Ok(_) => {}
                 Err(e) => return Err(format!("Failed to cache function {}: {}", name, e)),
             }
         }
