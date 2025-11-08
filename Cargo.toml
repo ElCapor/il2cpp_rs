@@ -13,3 +13,13 @@ crate-type = ["cdylib"]
 [profile.dev]
 debug=true
 #lto=true
+#
+[profile.release]
+opt-level = 3            # Maximum LLVM optimization
+lto = "fat"              # Link Time Optimization across all crates
+codegen-units = 1        # Force single-codegen unit for best inlining
+panic = "abort"          # Avoid extra unwinding code
+strip = "symbols"        # Remove symbol tables from final binary (for size)
+debug = false            # Do not emit debug info
+incremental = false      # Always do full, optimized builds
+overflow-checks = false  # Skip integer overflow checks
