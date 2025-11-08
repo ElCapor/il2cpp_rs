@@ -161,5 +161,4 @@ fn example() -> Result<(), String> {
 ---
 
 ## License
-
-MIT for now, licence is subject to change any time soon
+GNU General Public License v3.0. See [LICENSE.MD](LICENSE.MD) for details.
