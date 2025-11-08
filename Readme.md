@@ -1,3 +1,5 @@
+![Crates.io Version](https://img.shields.io/crates/v/il2cpp_rs)
+
 # Note
 
 This repo is currently in development and is not ready for production use.
