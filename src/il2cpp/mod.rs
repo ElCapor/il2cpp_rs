@@ -7,6 +7,8 @@ use il2cpp_sys::c_types::{
 
 use std::ffi::{CStr, CString};
 
+use crate::il2cpp::il2cpp_sys::il2cpp_class_get_fields;
+
 pub fn get_domain() -> Result<Il2CppDomain, String> {
     il2cpp_sys::il2cpp_domain_get()
 }
@@ -107,20 +109,8 @@ pub fn class_from_name(
     )
 }
 
-pub fn class_get_fields(klass: Il2CppClass) -> Result<Vec<*mut u8>, String> {
-    let mut iter: usize = 0;
-    let mut fields = Vec::new();
-
-    match il2cpp_sys::il2cpp_class_get_fields(klass, &mut iter as *mut usize) {
-        Ok(field_ptr) => {
-            if field_ptr.is_null() {
-                return Err("Field pointer is null".to_string());
-            }
-            fields.push(field_ptr);
-        }
-        Err(e) => return Err(format!("Failed to get fields: {}", e)),
-    }
-    Ok(fields)
+pub fn class_get_fields(klass: Il2CppClass, iter: *mut u8) -> Result<*mut u8, String> {
+    il2cpp_class_get_fields(klass, iter)
 }
 
 pub fn class_get_name(klass: Il2CppClass) -> Result<String, String> {

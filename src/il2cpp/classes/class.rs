@@ -1,6 +1,7 @@
 use crate::il2cpp::classes::{field::Field, method::Method};
 use std::fmt::{Debug, Formatter};
 
+#[derive(Clone)]
 pub struct Class {
     pub address: *mut u8,
     pub name: String,
@@ -29,6 +30,10 @@ impl Debug for Class {
         write!(f, "Name: {}\n", self.name)?;
         write!(f, "Parent: {}\n", self.parent)?;
         write!(f, "Namespace: {}\n", self.namespace)?;
+        write!(f, "Fields Len: {}\n", self.fields.len())?;
+        for field in &self.fields {
+            write!(f, "{:?}", field)?;
+        }
         Ok(())
     }
 }

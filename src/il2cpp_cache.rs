@@ -1,7 +1,7 @@
 use crate::il2cpp::{
-    assembly_get_image, class_get_name, class_get_namespace, class_get_parent,
-    classes::{assembly::Assembly, class::Class},
-    domain_get_assemblies,
+    assembly_get_image, class_get_fields, class_get_name, class_get_namespace, class_get_parent,
+    classes::{assembly::Assembly, class::Class, field::Field, itype::Type},
+    domain_get_assemblies, field_get_name,
     il2cpp_sys::c_types::{Il2CppDomain, Il2CppImage},
     image_get_class, image_get_class_count, image_get_filename, image_get_name,
 };
@@ -35,6 +35,7 @@ impl Cache {
                             name.unwrap(),
                             file_name.unwrap(),
                         ));
+                        println!("{}", asm.name);
                         if let Err(e) = Cache::parse_class(asm, image) {
                             return Err(format!("Failed to parse class {}", e));
                         }
@@ -60,16 +61,61 @@ impl Cache {
                     }
 
                     let parent_name = if let Ok(parent) = parent {
-                        match class_get_name(parent) {
-                            Ok(name) => name,
-                            Err(_) => String::new(),
+                        if !parent.is_null() {
+                            match class_get_name(parent) {
+                                Ok(name) => name,
+                                Err(_) => "".to_string(),
+                            }
+                        } else {
+                            "".to_string()
                         }
                     } else {
-                        String::new()
+                        "".to_string()
                     };
-                    let class = Class::new(p_class, name.unwrap(), namespace.unwrap(), parent_name);
-                    assembly.classes.push(class);
+
+                    let class = assembly.classes.push_mut(Class::new(
+                        p_class,
+                        name.unwrap(),
+                        namespace.unwrap(),
+                        parent_name,
+                    ));
+                    if let Err(e) = Cache::parse_fields(class) {
+                        return Err(format!("Failed to parse fields {}", e));
+                    }
                 }
+            }
+        }
+        Ok(())
+    }
+
+    pub fn parse_fields(class: &mut Class) -> Result<(), String> {
+        let mut iter: *mut u8 = std::ptr::null_mut();
+        let mut field: *mut u8 = std::ptr::null_mut();
+
+        while (field != std::ptr::null_mut()) {
+            if let Ok(ffield) = class_get_fields(class.address, iter) {
+                field = ffield;
+
+                if (!field.is_null()) {
+                    let name = field_get_name(field);
+                    if name.is_err() {
+                        continue;
+                    }
+
+                    let name = name.unwrap();
+                    let field = Field::new(
+                        field,
+                        name,
+                        Type::default(),
+                        class.clone(),
+                        0,
+                        false,
+                        std::ptr::null_mut(),
+                    );
+                    class.fields.push(field);
+                }
+            } else {
+                continue;
             }
         }
         Ok(())
