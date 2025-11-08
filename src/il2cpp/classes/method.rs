@@ -1,6 +1,7 @@
+use crate::il2cpp::classes::arg::Arg;
 use crate::il2cpp::classes::class::ClassInner;
 use crate::il2cpp::classes::itype::Type;
-use std::sync::{Arc, Weak};
+use std::sync::{Arc, RwLock, Weak};
 
 pub struct MethodInner {
     pub address: *mut u8,
@@ -10,6 +11,7 @@ pub struct MethodInner {
     pub flags: i32,
     pub static_methodon: bool,
     pub function: *mut u8,
+    pub args: RwLock<Vec<Arg>>,
 }
 
 pub type Method = Arc<MethodInner>;
@@ -23,6 +25,7 @@ impl MethodInner {
         flags: i32,
         static_methodon: bool,
         function: *mut u8,
+        args: RwLock<Vec<Arg>>,
     ) -> Method {
         Arc::new(Self {
             address,
@@ -32,6 +35,7 @@ impl MethodInner {
             flags,
             static_methodon,
             function,
+            args,
         })
     }
 }

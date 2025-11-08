@@ -2,6 +2,7 @@ use crate::il2cpp::{
     assembly_get_image, class_get_fields, class_get_methods, class_get_name, class_get_namespace,
     class_get_parent,
     classes::{
+        arg::{Arg, ArgInner},
         assembly::Assembly,
         class::{Class, ClassInner},
         field::FieldInner,
@@ -11,14 +12,15 @@ use crate::il2cpp::{
     domain_get_assemblies, field_get_name, field_get_offset, field_get_type,
     il2cpp_sys::c_types::{Il2CppDomain, Il2CppImage},
     image_get_class, image_get_class_count, image_get_filename, image_get_name, method_get_flags,
-    method_get_name, method_get_param_count, method_get_return_type, type_get_name,
+    method_get_name, method_get_param, method_get_param_count, method_get_param_name,
+    method_get_return_type, type_get_name,
 };
 
+use std::ffi::c_void;
 use std::{
-    collections::hash_set::Iter,
     fmt::{Debug, Formatter},
+    sync::{Arc, RwLock},
 };
-use std::{ffi::c_void, sync::Arc};
 
 pub struct Cache {
     assemblies: Vec<Assembly>,
@@ -157,7 +159,7 @@ impl Cache {
         let mut iter: *mut u8 = std::ptr::null_mut();
         let mut method: *mut u8;
 
-        loop {
+        'parsing: loop {
             if let Ok(mm) = class_get_methods(class.address, &mut iter) {
                 method = mm;
             } else {
@@ -204,6 +206,29 @@ impl Cache {
                 continue;
             }
             let arg_count = arg_count.unwrap();
+            let args = RwLock::new(Vec::new());
+            for i in 0..arg_count {
+                let param_name = method_get_param_name(method, i);
+                if param_name.is_err() {
+                    break 'parsing;
+                }
+                let param_name = param_name.unwrap();
+
+                let param_type = method_get_param(method, i);
+                if param_type.is_err() {
+                    break 'parsing;
+                }
+                let param_type = param_type.unwrap();
+
+                let param_type_name = type_get_name(param_type);
+                if param_type_name.is_err() {
+                    break 'parsing;
+                }
+                let param_type_name = param_type_name.unwrap();
+
+                let type_ = TypeInner::new(param_type, param_type_name, -1);
+                args.write().unwrap().push(ArgInner::new(param_name, type_));
+            }
 
             class.methods.write().unwrap().push(MethodInner::new(
                 method,
@@ -213,6 +238,7 @@ impl Cache {
                 flags,
                 static_function,
                 func_ptr as *mut u8,
+                args,
             ));
         }
         Ok(())

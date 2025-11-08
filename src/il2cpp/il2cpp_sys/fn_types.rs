@@ -32,4 +32,6 @@ pub type Il2CppMethodGetParamNameFn =
     unsafe extern "C" fn(method: Il2CppMethodInfo, index: u32) -> *const i8;
 pub type Il2CppMethodGetReturnTypeFn = unsafe extern "C" fn(method: Il2CppMethodInfo) -> Il2CppType;
 pub type Il2CppMethodGetFlagsFn = unsafe extern "C" fn(method: Il2CppMethodInfo, *mut i32) -> i32;
+pub type Il2CppMethodGetParamFn =
+    unsafe extern "C" fn(method: Il2CppMethodInfo, index: u32) -> Il2CppType;
 pub type Il2CppTypeGetNameFn = unsafe extern "C" fn(itype: Il2CppType) -> *const i8;

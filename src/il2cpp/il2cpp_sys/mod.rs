@@ -37,6 +37,7 @@ struct Il2CppFunctions {
     pub method_get_param_name: Option<Il2CppMethodGetParamNameFn>,
     pub method_get_return_type: Option<Il2CppMethodGetReturnTypeFn>,
     pub method_get_flags: Option<Il2CppMethodGetFlagsFn>,
+    pub method_get_param: Option<Il2CppMethodGetParamFn>,
     pub type_get_name: Option<Il2CppTypeGetNameFn>,
 }
 
@@ -68,6 +69,7 @@ impl Il2CppFunctions {
             method_get_param_name: None,
             method_get_return_type: None,
             method_get_flags: None,
+            method_get_param: None,
             type_get_name: None,
         }
     }
@@ -231,6 +233,8 @@ impl Il2CppDll {
             Some(self.invoke_mut::<Il2CppMethodGetReturnTypeFn>("il2cpp_method_get_return_type")?);
         self.functions.method_get_flags =
             Some(self.invoke_mut::<Il2CppMethodGetFlagsFn>("il2cpp_method_get_flags")?);
+        self.functions.method_get_param =
+            Some(self.invoke_mut::<Il2CppMethodGetParamFn>("il2cpp_method_get_param")?);
         self.functions.type_get_name =
             Some(self.invoke_mut::<Il2CppTypeGetNameFn>("il2cpp_type_get_name")?);
         Ok(())
@@ -293,6 +297,10 @@ impl Il2CppDll {
         println!(
             "il2cpp_method_get_flags: {:?}",
             self.functions.method_get_flags
+        );
+        println!(
+            "il2cpp_method_get_param: {:?}",
+            self.functions.method_get_param
         );
         println!("il2cpp_type_get_name: {:?}", self.functions.type_get_name);
     }
@@ -537,6 +545,20 @@ impl Il2CppDll {
         }
     }
 
+    pub fn il2cpp_method_get_param(
+        &self,
+        method: Il2CppMethodInfo,
+        index: u32,
+    ) -> Result<Il2CppType, String> {
+        match self.functions.method_get_param {
+            Some(method_get_param) => Ok(unsafe { method_get_param(method, index) }),
+            None => match self.invoke::<Il2CppMethodGetParamFn>("il2cpp_method_get_param") {
+                Ok(method_get_param) => Ok(unsafe { method_get_param(method, index) }),
+                Err(e) => Err(format!("Failed to invoke il2cpp_method_get_param: {}", e)),
+            },
+        }
+    }
+
     pub fn il2cpp_type_get_name(&self, itype: Il2CppType) -> Result<*const i8, String> {
         match self.functions.type_get_name {
             Some(type_get_name) => Ok(unsafe { type_get_name(itype) }),
@@ -762,6 +784,10 @@ pub fn il2cpp_method_get_return_type(method: Il2CppMethodInfo) -> Result<Il2CppT
 
 pub fn il2cpp_method_get_flags(method: Il2CppMethodInfo, iflag: *mut i32) -> Result<i32, String> {
     IL2CPP_MODULE.read().il2cpp_method_get_flags(method, iflag)
+}
+
+pub fn il2cpp_method_get_param(method: Il2CppMethodInfo, index: u32) -> Result<Il2CppType, String> {
+    IL2CPP_MODULE.read().il2cpp_method_get_param(method, index)
 }
 
 pub fn il2cpp_type_get_name(itype: Il2CppType) -> Result<*const i8, String> {

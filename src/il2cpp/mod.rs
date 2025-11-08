@@ -211,6 +211,10 @@ pub fn method_get_flags(method: Il2CppMethodInfo, iflag: *mut i32) -> Result<i32
     il2cpp_sys::il2cpp_method_get_flags(method, iflag)
 }
 
+pub fn method_get_param(method: Il2CppMethodInfo, index: u32) -> Result<Il2CppType, String> {
+    il2cpp_sys::il2cpp_method_get_param(method, index)
+}
+
 pub fn type_get_name(itype: Il2CppType) -> Result<String, String> {
     match il2cpp_sys::il2cpp_type_get_name(itype) {
         Ok(c_str) => {
