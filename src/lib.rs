@@ -14,17 +14,18 @@ pub fn entry_point() {
         exit(-1);
     }
     println!("Initializing Il2CppApi...");
-    match init_unity_resolve() {
-        Ok(api) => api,
-        Err(e) => {
-            println!("Error: {}", e);
-            wait_line_press_to_exit(-1);
-        }
-    };
+
     println!("Initializing Il2CppApi... Done");
-    IL2CPP_API
-        .get()
-        .map(|api| api.get_api().print_all_function_ptrs());
+    if let Some(api) = IL2CPP_API.get_mut() {
+        match api.init() {
+            Ok(_) => {}
+            Err(e) => {
+                println!("Error: {}", e);
+                wait_line_press_to_exit(-1);
+            }
+        }
+    }
+
     wait_line_press_to_exit(-1);
 }
 
