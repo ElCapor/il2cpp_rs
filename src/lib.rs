@@ -1,11 +1,11 @@
 pub mod console;
 pub mod il2cpp;
 
-use il2cpp::unityresolve::IL2CPP_API;
 use std::process::exit;
 use std::thread;
 
 use crate::console::wait_line_press_to_exit;
+use crate::il2cpp::{assembly_get_image, domain_get_assemblies, image_get_name, thread_attach};
 
 pub fn entry_point() {
     // Initialize the console
@@ -14,21 +14,39 @@ pub fn entry_point() {
         exit(-1);
     }
     println!("Initializing Il2CppApi...");
-    let mut unity_resolve = IL2CPP_API.lock();
-    let api = unity_resolve.get_api().unwrap();
-    let domain = unity_resolve.get_domain().unwrap();
-
-    match unity_resolve.init() {
+    match il2cpp::init("GameAssembly.dll") {
         Ok(_) => {
-            println!("Initializing Il2CppApi... Done");
+            println!("Il2CppApi initialized");
         }
         Err(e) => {
-            println!("Failed init {}", e);
+            println!("Error: {}", e);
+            wait_line_press_to_exit(-1);
         }
     }
 
-    api.print_all_function_ptrs();
+    match il2cpp::get_domain() {
+        Ok(domain) => {
+            println!("Domain: {:p}", domain);
+            let _ = thread_attach(domain);
+            println!("Attached to domain");
+            let assemblies = domain_get_assemblies(domain).unwrap();
+            for assembly in assemblies {
+                if let Ok(image) = assembly_get_image(assembly) {
+                    let name = image_get_name(image);
+                    if (name.is_err()) {
+                        continue;
+                    }
+                    println!("Found assembly {}", name.unwrap());
+                }
+            }
+        }
+        Err(e) => {
+            println!("Error: {}", e);
+            wait_line_press_to_exit(-1);
+        }
+    }
 
+    il2cpp::print_all_function_ptrs();
     wait_line_press_to_exit(-1);
 }
 
