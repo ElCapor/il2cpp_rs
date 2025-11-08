@@ -428,7 +428,7 @@ impl Il2CppDll {
     pub fn il2cpp_class_get_fields(
         &self,
         klass: Il2CppClass,
-        iter: *mut u8,
+        iter: *mut *mut u8,
     ) -> Result<*mut u8, String> {
         match self.functions.class_get_fields {
             Some(class_get_fields) => Ok(unsafe { class_get_fields(klass, iter) }),
@@ -707,7 +707,7 @@ pub fn il2cpp_image_get_class_count(image: Il2CppImage) -> Result<usize, String>
     dll.il2cpp_image_get_class_count(image)
 }
 
-pub fn il2cpp_class_get_fields(klass: Il2CppClass, iter: *mut u8) -> Result<*mut u8, String> {
+pub fn il2cpp_class_get_fields(klass: Il2CppClass, iter: *mut *mut u8) -> Result<*mut u8, String> {
     let dll = IL2CPP_MODULE.lock();
     dll.il2cpp_class_get_fields(klass, iter)
 }

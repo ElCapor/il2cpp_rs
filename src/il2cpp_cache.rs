@@ -6,7 +6,10 @@ use crate::il2cpp::{
     image_get_class, image_get_class_count, image_get_filename, image_get_name,
 };
 
-use std::fmt::{Debug, Formatter};
+use std::{
+    fmt::{Debug, Formatter},
+    os::windows::ffi,
+};
 
 pub struct Cache {
     assemblies: Vec<Assembly>,
@@ -92,31 +95,33 @@ impl Cache {
         let mut iter: *mut u8 = std::ptr::null_mut();
         let mut field: *mut u8 = std::ptr::null_mut();
 
-        while (field != std::ptr::null_mut()) {
-            if let Ok(ffield) = class_get_fields(class.address, iter) {
-                field = ffield;
-
-                if (!field.is_null()) {
-                    let name = field_get_name(field);
-                    if name.is_err() {
-                        continue;
-                    }
-
-                    let name = name.unwrap();
-                    let field = Field::new(
-                        field,
-                        name,
-                        Type::default(),
-                        class.clone(),
-                        0,
-                        false,
-                        std::ptr::null_mut(),
-                    );
-                    class.fields.push(field);
-                }
+        loop {
+            if let Ok(ff) = class_get_fields(class.address, &mut iter) {
+                field = ff;
+                //println!("{:p}", field);
             } else {
+                break;
+            }
+            if field.is_null() {
+                break;
+            }
+
+            let name = field_get_name(field);
+            if name.is_err() {
                 continue;
             }
+
+            let name = name.unwrap();
+            //println!("{}", name);
+            class.fields.push(Field::new(
+                field,
+                name,
+                Type::default(),
+                class.clone(),
+                0,
+                false,
+                std::ptr::null_mut(),
+            ));
         }
         Ok(())
     }

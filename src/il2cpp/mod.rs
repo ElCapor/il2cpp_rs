@@ -109,7 +109,7 @@ pub fn class_from_name(
     )
 }
 
-pub fn class_get_fields(klass: Il2CppClass, iter: *mut u8) -> Result<*mut u8, String> {
+pub fn class_get_fields(klass: Il2CppClass, iter: *mut *mut u8) -> Result<*mut u8, String> {
     il2cpp_class_get_fields(klass, iter)
 }
 
