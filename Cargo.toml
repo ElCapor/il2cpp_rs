@@ -2,6 +2,15 @@
 name = "il2cpp_rs"
 version = "0.1.0"
 edition = "2024"
+authors = ["https://github.com/ElCapor"]
+description = "A library for interacting with il2cpp on Windows"
+license = "GPL-3.0"
+readme = "README.md"
+license-file = "LICENSE"
+repository = "https://github.com/ElCapor/il2cpp_rs"
+homepage = "https://github.com/ElCapor/il2cpp_rs"
+keywords = ["il2cpp", "il2cpp-rs", "il2cpp-dll", "il2cpp-library", "il2cpp-hook", "hook", "hooks", "injection", "inject", "dll", "library", "unity"]
+categories = ["api-bindings", "development-tools::debugging", "unity"]
 
 [dependencies]
 windows = {version="0.62.2", features = ["Win32_Foundation", "Win32_System_Console", "Win32_System_LibraryLoader"]}
