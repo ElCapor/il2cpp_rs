@@ -1,6 +1,7 @@
 use crate::il2cpp::classes::{field::Field, method::Method};
+use parking_lot::RwLock;
 use std::fmt::{Debug, Formatter};
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 pub struct ClassInner {
     pub address: *mut u8,
@@ -32,7 +33,7 @@ impl Debug for ClassInner {
         write!(f, "Name: {}\n", self.name)?;
         write!(f, "Parent: {}\n", self.parent)?;
         write!(f, "Namespace: {}\n", self.namespace)?;
-        let fields = self.fields.read().unwrap();
+        let fields = self.fields.read();
         write!(f, "Fields Len: {}\n", fields.len())?;
         for field in fields.iter() {
             write!(f, "{:?}", field)?;

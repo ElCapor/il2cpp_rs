@@ -16,9 +16,10 @@ use crate::il2cpp::{
     method_get_return_type, type_get_name,
 };
 
+use parking_lot::RwLock;
 use std::{
     fmt::{Debug, Formatter},
-    sync::{Arc, RwLock},
+    sync::Arc,
 };
 
 pub struct Cache {
@@ -142,7 +143,7 @@ impl Cache {
 
             let name = name.unwrap();
             let weak_cls = Arc::downgrade(class);
-            class.fields.write().unwrap().push(FieldInner::new(
+            class.fields.write().push(FieldInner::new(
                 field,
                 name,
                 type_,
@@ -226,12 +227,12 @@ impl Cache {
                 };
 
                 let type_ = TypeInner::new(param_type, param_type_name, -1);
-                args.write().unwrap().push(ArgInner::new(param_name, type_));
+                args.write().push(ArgInner::new(param_name, type_));
             }
 
             if param_error { continue; }
 
-            class.methods.write().unwrap().push(MethodInner::new(
+            class.methods.write().push(MethodInner::new(
                 method,
                 name,
                 weak_cls,

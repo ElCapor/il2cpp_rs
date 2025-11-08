@@ -1,7 +1,8 @@
 use crate::il2cpp::classes::arg::Arg;
 use crate::il2cpp::classes::class::ClassInner;
 use crate::il2cpp::classes::itype::Type;
-use std::sync::{Arc, RwLock, Weak};
+use parking_lot::RwLock;
+use std::sync::{Arc, Weak};
 
 pub struct MethodInner {
     pub address: *mut u8,
