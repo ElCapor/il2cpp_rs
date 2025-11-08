@@ -41,6 +41,7 @@ type Il2CppMethodGetNameFn = unsafe extern "C" fn(method: Il2CppMethodInfo) -> *
 type Il2CppDomainGetAssembliesFn =
     unsafe extern "C" fn(domain: Il2CppDomain, size: *mut usize) -> *mut Il2CppAssembly;
 type Il2CppImageGetNameFn = unsafe extern "C" fn(image: Il2CppImage) -> *const i8;
+type Il2CppImageGetFileNameFn = unsafe extern "C" fn(image: Il2CppImage) -> *const i8;
 type Il2CppClassGetFieldsFn = unsafe extern "C" fn(klass: Il2CppClass, iter: *mut usize) -> *mut u8; // Il2CppField
 type Il2CppFieldGetNameFn = unsafe extern "C" fn(field: *mut u8) -> *const i8;
 type Il2CppFieldGetOffsetFn = unsafe extern "C" fn(field: *mut u8) -> u32;
@@ -63,6 +64,7 @@ pub struct Il2CppApi {
     pub method_get_name: Option<Il2CppMethodGetNameFn>,
     pub domain_get_assemblies: Option<Il2CppDomainGetAssembliesFn>,
     pub image_get_name: Option<Il2CppImageGetNameFn>,
+    pub image_get_filename: Option<Il2CppImageGetFileNameFn>,
     pub class_get_fields: Option<Il2CppClassGetFieldsFn>,
     pub field_get_name: Option<Il2CppFieldGetNameFn>,
     pub field_get_offset: Option<Il2CppFieldGetOffsetFn>,
@@ -86,6 +88,7 @@ impl Il2CppApi {
             method_get_name: None,
             domain_get_assemblies: None,
             image_get_name: None,
+            image_get_filename: None,
             class_get_fields: None,
             field_get_name: None,
             field_get_offset: None,
@@ -162,6 +165,12 @@ impl Il2CppApi {
         self.image_get_name = unsafe {
             Self::resolve_function(module, "il2cpp_image_get_name").map(|f| std::mem::transmute(f))
         };
+
+        self.image_get_filename = unsafe {
+            Self::resolve_function(module, "il2cpp_image_get_filename")
+                .map(|f| std::mem::transmute(f))
+        };
+
         self.class_get_fields = unsafe {
             Self::resolve_function(module, "il2cpp_class_get_fields")
                 .map(|f| std::mem::transmute(f))
@@ -217,6 +226,7 @@ impl Il2CppApi {
         println!("method_get_name: {:?}", self.method_get_name);
         println!("domain_get_assemblies: {:?}", self.domain_get_assemblies);
         println!("image_get_name: {:?}", self.image_get_name);
+        println!("image_get_filename: {:?}", self.image_get_filename);
         println!("class_get_fields: {:?}", self.class_get_fields);
         println!("field_get_name: {:?}", self.field_get_name);
         println!("field_get_offset: {:?}", self.field_get_offset);

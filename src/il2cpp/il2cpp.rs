@@ -56,6 +56,19 @@ impl<'a> Il2Cpp<'a> {
         unsafe { self.api.assembly_get_image.map(|f| f(assembly)) }
     }
 
+    pub fn image_get_filename(&self, image: Il2CppMethodInfo) -> Option<&str> {
+        unsafe {
+            self.api.image_get_filename.and_then(|f| {
+                let c_str = f(image);
+                if c_str.is_null() {
+                    None
+                } else {
+                    CStr::from_ptr(c_str).to_str().ok()
+                }
+            })
+        }
+    }
+
     pub fn image_get_name(&self, image: Il2CppImage) -> Option<&str> {
         unsafe {
             self.api.image_get_name.and_then(|f| {
