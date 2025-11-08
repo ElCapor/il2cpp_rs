@@ -74,6 +74,17 @@ pub fn image_get_name(image: Il2CppImage) -> Result<String, String> {
     }
 }
 
+pub fn image_get_class(image: Il2CppImage, index: usize) -> Result<Il2CppClass, String> {
+    il2cpp_sys::il2cpp_image_get_class(image, index)
+}
+
+pub fn image_get_class_count(image: Il2CppImage) -> Result<usize, String> {
+    match il2cpp_sys::il2cpp_image_get_class_count(image) {
+        Ok(count) => Ok(count),
+        Err(e) => Err(format!("Failed to get image class count: {}", e)),
+    }
+}
+
 pub fn class_from_name(
     image: Il2CppImage,
     namespace: &str,
@@ -110,6 +121,38 @@ pub fn class_get_fields(klass: Il2CppClass) -> Result<Vec<*mut u8>, String> {
         Err(e) => return Err(format!("Failed to get fields: {}", e)),
     }
     Ok(fields)
+}
+
+pub fn class_get_name(klass: Il2CppClass) -> Result<String, String> {
+    match il2cpp_sys::il2cpp_class_get_name(klass) {
+        Ok(c_str) => {
+            if c_str.is_null() {
+                Err("Class name is null".to_string())
+            } else {
+                Ok(unsafe { CStr::from_ptr(c_str).to_str().unwrap().to_string() })
+            }
+        }
+
+        Err(e) => Err(format!("Failed to get class name: {}", e)),
+    }
+}
+
+pub fn class_get_namespace(klass: Il2CppClass) -> Result<String, String> {
+    match il2cpp_sys::il2cpp_class_get_namespace(klass) {
+        Ok(c_str) => {
+            if c_str.is_null() {
+                Err("Class namespace is null".to_string())
+            } else {
+                Ok(unsafe { CStr::from_ptr(c_str).to_str().unwrap().to_string() })
+            }
+        }
+
+        Err(e) => Err(format!("Failed to get class namespace: {}", e)),
+    }
+}
+
+pub fn class_get_parent(klass: Il2CppClass) -> Result<Il2CppClass, String> {
+    il2cpp_sys::il2cpp_class_get_parent(klass)
 }
 
 pub fn field_get_name(field: *mut u8) -> Result<String, String> {

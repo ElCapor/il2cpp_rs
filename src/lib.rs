@@ -1,3 +1,5 @@
+#![feature(push_mut)]
+
 pub mod console;
 pub mod il2cpp;
 
@@ -6,6 +8,9 @@ use std::thread;
 
 use crate::console::wait_line_press_to_exit;
 use crate::il2cpp::{assembly_get_image, domain_get_assemblies, image_get_name, thread_attach};
+use crate::il2cpp_cache::Cache;
+
+mod il2cpp_cache;
 
 pub fn entry_point() {
     // Initialize the console
@@ -29,14 +34,14 @@ pub fn entry_point() {
             println!("Domain: {:p}", domain);
             let _ = thread_attach(domain);
             println!("Attached to domain");
-            let assemblies = domain_get_assemblies(domain).unwrap();
-            for assembly in assemblies {
-                if let Ok(image) = assembly_get_image(assembly) {
-                    let name = image_get_name(image);
-                    if (name.is_err()) {
-                        continue;
-                    }
-                    println!("Found assembly {}", name.unwrap());
+            let cache = Cache::new(domain);
+            match cache {
+                Ok(cache) => {
+                    println!("{:?}", cache);
+                }
+                Err(e) => {
+                    println!("Error: {}", e);
+                    wait_line_press_to_exit(-1);
                 }
             }
         }

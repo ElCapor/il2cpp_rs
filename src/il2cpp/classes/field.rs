@@ -1,4 +1,4 @@
-use crate::il2cpp::classes::typ::Type;
+use crate::il2cpp::classes::itype::Type;
 
 pub struct Field {
     address: *mut u8,

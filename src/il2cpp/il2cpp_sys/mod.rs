@@ -20,10 +20,15 @@ struct Il2CppFunctions {
     pub assembly_get_image: Option<Il2CppAssemblyGetImageFn>,
     pub class_from_name: Option<Il2CppClassFromNameFn>,
     pub class_get_methods: Option<Il2CppClassGetMethodsFn>,
+    pub class_get_name: Option<Il2CppClassGetNameFn>,
+    pub class_get_namespace: Option<Il2CppClassGetNamespaceFn>,
+    pub class_get_parent: Option<Il2CppClassGetParentFn>,
     pub method_get_name: Option<Il2CppMethodGetNameFn>,
     pub domain_get_assemblies: Option<Il2CppDomainGetAssembliesFn>,
     pub image_get_name: Option<Il2CppImageGetNameFn>,
     pub image_get_filename: Option<Il2CppImageGetFileNameFn>,
+    pub image_get_class: Option<Il2CppImageGetClassFn>,
+    pub image_get_class_count: Option<Il2CppImageGetClassCountFn>,
     pub class_get_fields: Option<Il2CppClassGetFieldsFn>,
     pub field_get_name: Option<Il2CppFieldGetNameFn>,
     pub field_get_offset: Option<Il2CppFieldGetOffsetFn>,
@@ -44,10 +49,15 @@ impl Il2CppFunctions {
             assembly_get_image: None,
             class_from_name: None,
             class_get_methods: None,
+            class_get_name: None,
+            class_get_namespace: None,
+            class_get_parent: None,
             method_get_name: None,
             domain_get_assemblies: None,
             image_get_name: None,
             image_get_filename: None,
+            image_get_class: None,
+            image_get_class_count: None,
             class_get_fields: None,
             field_get_name: None,
             field_get_offset: None,
@@ -183,6 +193,12 @@ impl Il2CppDll {
             Some(self.invoke_mut::<Il2CppClassFromNameFn>("il2cpp_class_from_name")?);
         self.functions.class_get_methods =
             Some(self.invoke_mut::<Il2CppClassGetMethodsFn>("il2cpp_class_get_methods")?);
+        self.functions.class_get_name =
+            Some(self.invoke_mut::<Il2CppClassGetNameFn>("il2cpp_class_get_name")?);
+        self.functions.class_get_namespace =
+            Some(self.invoke_mut::<Il2CppClassGetNamespaceFn>("il2cpp_class_get_namespace")?);
+        self.functions.class_get_parent =
+            Some(self.invoke_mut::<Il2CppClassGetParentFn>("il2cpp_class_get_parent")?);
         self.functions.method_get_name =
             Some(self.invoke_mut::<Il2CppMethodGetNameFn>("il2cpp_method_get_name")?);
         self.functions.domain_get_assemblies =
@@ -191,6 +207,10 @@ impl Il2CppDll {
             Some(self.invoke_mut::<Il2CppImageGetNameFn>("il2cpp_image_get_name")?);
         self.functions.image_get_filename =
             Some(self.invoke_mut::<Il2CppImageGetFileNameFn>("il2cpp_image_get_filename")?);
+        self.functions.image_get_class =
+            Some(self.invoke_mut::<Il2CppImageGetClassFn>("il2cpp_image_get_class")?);
+        self.functions.image_get_class_count =
+            Some(self.invoke_mut::<Il2CppImageGetClassCountFn>("il2cpp_image_get_class_count")?);
         self.functions.class_get_fields =
             Some(self.invoke_mut::<Il2CppClassGetFieldsFn>("il2cpp_class_get_fields")?);
         self.functions.field_get_name =
@@ -499,6 +519,67 @@ impl Il2CppDll {
             },
         }
     }
+
+    pub fn il2cpp_image_get_class(
+        &self,
+        image: Il2CppImage,
+        index: usize,
+    ) -> Result<Il2CppClass, String> {
+        match self.functions.image_get_class {
+            Some(image_get_class) => Ok(unsafe { image_get_class(image, index) }),
+            None => match self.invoke::<Il2CppImageGetClassFn>("il2cpp_image_get_class") {
+                Ok(image_get_class) => Ok(unsafe { image_get_class(image, index) }),
+                Err(e) => Err(format!("Failed to invoke il2cpp_image_get_class: {}", e)),
+            },
+        }
+    }
+
+    pub fn il2cpp_image_get_class_count(&self, image: Il2CppImage) -> Result<usize, String> {
+        match self.functions.image_get_class_count {
+            Some(image_get_class_count) => Ok(unsafe { image_get_class_count(image) }),
+            None => match self.invoke::<Il2CppImageGetClassCountFn>("il2cpp_image_get_class_count")
+            {
+                Ok(image_get_class_count) => Ok(unsafe { image_get_class_count(image) }),
+                Err(e) => Err(format!(
+                    "Failed to invoke il2cpp_image_get_class_count: {}",
+                    e
+                )),
+            },
+        }
+    }
+
+    pub fn il2cpp_class_get_name(&self, klass: Il2CppClass) -> Result<*const i8, String> {
+        match self.functions.class_get_name {
+            Some(class_get_name) => Ok(unsafe { class_get_name(klass) }),
+            None => match self.invoke::<Il2CppClassGetNameFn>("il2cpp_class_get_name") {
+                Ok(class_get_name) => Ok(unsafe { class_get_name(klass) }),
+                Err(e) => Err(format!("Failed to invoke il2cpp_class_get_name: {}", e)),
+            },
+        }
+    }
+
+    pub fn il2cpp_class_get_namespace(&self, klass: Il2CppClass) -> Result<*const i8, String> {
+        match self.functions.class_get_namespace {
+            Some(class_get_namespace) => Ok(unsafe { class_get_namespace(klass) }),
+            None => match self.invoke::<Il2CppClassGetNamespaceFn>("il2cpp_class_get_namespace") {
+                Ok(class_get_namespace) => Ok(unsafe { class_get_namespace(klass) }),
+                Err(e) => Err(format!(
+                    "Failed to invoke il2cpp_class_get_namespace: {}",
+                    e
+                )),
+            },
+        }
+    }
+
+    pub fn il2cpp_class_get_parent(&self, klass: Il2CppClass) -> Result<Il2CppClass, String> {
+        match self.functions.class_get_parent {
+            Some(class_get_parent) => Ok(unsafe { class_get_parent(klass) }),
+            None => match self.invoke::<Il2CppClassGetParentFn>("il2cpp_class_get_parent") {
+                Ok(class_get_parent) => Ok(unsafe { class_get_parent(klass) }),
+                Err(e) => Err(format!("Failed to invoke il2cpp_class_get_parent: {}", e)),
+            },
+        }
+    }
 }
 
 unsafe impl Send for Il2CppDll {}
@@ -578,6 +659,21 @@ pub fn il2cpp_class_get_methods(
     dll.il2cpp_class_get_methods(klass, iter)
 }
 
+pub fn il2cpp_class_get_name(klass: Il2CppClass) -> Result<*const i8, String> {
+    let dll = IL2CPP_MODULE.lock();
+    dll.il2cpp_class_get_name(klass)
+}
+
+pub fn il2cpp_class_get_namespace(klass: Il2CppClass) -> Result<*const i8, String> {
+    let dll = IL2CPP_MODULE.lock();
+    dll.il2cpp_class_get_namespace(klass)
+}
+
+pub fn il2cpp_class_get_parent(klass: Il2CppClass) -> Result<Il2CppClass, String> {
+    let dll = IL2CPP_MODULE.lock();
+    dll.il2cpp_class_get_parent(klass)
+}
+
 pub fn il2cpp_method_get_name(method: Il2CppMethodInfo) -> Result<*const i8, String> {
     let dll = IL2CPP_MODULE.lock();
     dll.il2cpp_method_get_name(method)
@@ -599,6 +695,16 @@ pub fn il2cpp_image_get_name(image: Il2CppImage) -> Result<*const i8, String> {
 pub fn il2cpp_image_get_filename(image: Il2CppImage) -> Result<*const i8, String> {
     let dll = IL2CPP_MODULE.lock();
     dll.il2cpp_image_get_filename(image)
+}
+
+pub fn il2cpp_image_get_class(image: Il2CppImage, index: usize) -> Result<Il2CppClass, String> {
+    let dll = IL2CPP_MODULE.lock();
+    dll.il2cpp_image_get_class(image, index)
+}
+
+pub fn il2cpp_image_get_class_count(image: Il2CppImage) -> Result<usize, String> {
+    let dll = IL2CPP_MODULE.lock();
+    dll.il2cpp_image_get_class_count(image)
 }
 
 pub fn il2cpp_class_get_fields(klass: Il2CppClass, iter: *mut usize) -> Result<*mut u8, String> {

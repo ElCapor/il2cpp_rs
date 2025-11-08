@@ -10,5 +10,5 @@ parking_lot = {version="0.12.5"}
 [lib]
 crate-type = ["cdylib"]
 
-[profile.dev]
-lto=true
+#[profile.dev]
+#lto=true
