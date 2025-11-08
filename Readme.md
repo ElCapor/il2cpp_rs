@@ -11,7 +11,7 @@ I wrote it in a single day with 15 hours of work.
 
 A lightweight Rust library for discovering and navigating IL2CPP metadata at runtime. It provides a safe-ish Rust façade over the IL2CPP C API, and builds a cache of assemblies, classes, fields, and methods with a modern ownership model for convenient querying and printing.
 
-> Note: This repo targets Windows and uses an injected DLL entry (`DllMain`) to attach to a running IL2CPP process (e.g., a Unity game), then prints metadata to a console.
+> Note: This repo targets Windows for now and requires using an injected DLL entry for example (`DllMain`) to attach to a running IL2CPP process (e.g., a Unity game).
 
 ---
 
@@ -113,19 +113,13 @@ cargo build
 cargo build
 ```
 
-The library compiles as a DLL (due to `DllMain`). You’ll typically inject it into a running IL2CPP process on Windows.
+
 
 ---
 
-## Running / Entry Point
+## Running / Example
 
-- On DLL load, `DllMain` spawns a Rust thread and calls `entry_point()`.
-- `entry_point()`:
-  - Allocates a console and initializes the IL2CPP API
-  - Attaches the thread to the IL2CPP domain
-  - Builds the `Cache` by walking assemblies → classes → fields/methods
-  - Prints debug info (you can comment/uncomment the debug prints)
-
+Example usage of the library in a dll at [https://github.com/ElCapor/il2cpp_rs-example-dll](https://github.com/ElCapor/il2cpp_rs-example-dll)
 ---
 
 ## Example: Discover and print classes
@@ -134,7 +128,7 @@ The library compiles as a DLL (due to `DllMain`). You’ll typically inject it i
 use il2cpp_rs::il2cpp;
 use il2cpp_rs::il2cpp_cache::Cache;
 
-fn example() -> Result<(), String> {
+fn entry_point() -> Result<(), String> {
     il2cpp::init("GameAssembly.dll")?;
     let domain = il2cpp::get_domain()?;
     il2cpp::thread_attach(domain)?;
