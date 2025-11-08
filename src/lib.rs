@@ -1,7 +1,7 @@
 pub mod console;
 pub mod il2cpp;
 
-use il2cpp::unityresolve::{IL2CPP_API, init_unity_resolve};
+use il2cpp::unityresolve::IL2CPP_API;
 use std::process::exit;
 use std::thread;
 
@@ -14,15 +14,15 @@ pub fn entry_point() {
         exit(-1);
     }
     println!("Initializing Il2CppApi...");
+    let mut api = IL2CPP_API.lock();
+    //api.get_api().unwrap().print_all_function_ptrs();
 
-    println!("Initializing Il2CppApi... Done");
-    if let Some(api) = IL2CPP_API.get_mut() {
-        match api.init() {
-            Ok(_) => {}
-            Err(e) => {
-                println!("Error: {}", e);
-                wait_line_press_to_exit(-1);
-            }
+    match api.init() {
+        Ok(_) => {
+            println!("Initializing Il2CppApi... Done");
+        }
+        Err(e) => {
+            println!("Failed init {}", e);
         }
     }
 
