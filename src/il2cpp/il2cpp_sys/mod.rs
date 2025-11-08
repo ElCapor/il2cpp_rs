@@ -36,6 +36,7 @@ struct Il2CppFunctions {
     pub method_get_param_count: Option<Il2CppMethodGetParamCountFn>,
     pub method_get_param_name: Option<Il2CppMethodGetParamNameFn>,
     pub method_get_return_type: Option<Il2CppMethodGetReturnTypeFn>,
+    pub method_get_flags: Option<Il2CppMethodGetFlagsFn>,
     pub type_get_name: Option<Il2CppTypeGetNameFn>,
 }
 
@@ -66,6 +67,7 @@ impl Il2CppFunctions {
             method_get_param_count: None,
             method_get_param_name: None,
             method_get_return_type: None,
+            method_get_flags: None,
             type_get_name: None,
         }
     }
@@ -227,6 +229,8 @@ impl Il2CppDll {
             Some(self.invoke_mut::<Il2CppMethodGetParamNameFn>("il2cpp_method_get_param_name")?);
         self.functions.method_get_return_type =
             Some(self.invoke_mut::<Il2CppMethodGetReturnTypeFn>("il2cpp_method_get_return_type")?);
+        self.functions.method_get_flags =
+            Some(self.invoke_mut::<Il2CppMethodGetFlagsFn>("il2cpp_method_get_flags")?);
         self.functions.type_get_name =
             Some(self.invoke_mut::<Il2CppTypeGetNameFn>("il2cpp_type_get_name")?);
         Ok(())
@@ -285,6 +289,10 @@ impl Il2CppDll {
         println!(
             "il2cpp_method_get_return_type: {:?}",
             self.functions.method_get_return_type
+        );
+        println!(
+            "il2cpp_method_get_flags: {:?}",
+            self.functions.method_get_flags
         );
         println!("il2cpp_type_get_name: {:?}", self.functions.type_get_name);
     }
@@ -370,7 +378,7 @@ impl Il2CppDll {
     pub fn il2cpp_class_get_methods(
         &self,
         klass: Il2CppClass,
-        iter: *mut usize,
+        iter: *mut *mut u8,
     ) -> Result<Il2CppMethodInfo, String> {
         match self.functions.class_get_methods {
             Some(class_get_methods) => Ok(unsafe { class_get_methods(klass, iter) }),
@@ -512,6 +520,20 @@ impl Il2CppDll {
                     )),
                 }
             }
+        }
+    }
+
+    pub fn il2cpp_method_get_flags(
+        &self,
+        method: Il2CppMethodInfo,
+        iflag: *mut i32,
+    ) -> Result<i32, String> {
+        match self.functions.method_get_flags {
+            Some(method_get_flags) => Ok(unsafe { method_get_flags(method, iflag) }),
+            None => match self.invoke::<Il2CppMethodGetFlagsFn>("il2cpp_method_get_flags") {
+                Ok(method_get_flags) => Ok(unsafe { method_get_flags(method, iflag) }),
+                Err(e) => Err(format!("Failed to invoke il2cpp_method_get_flags: {}", e)),
+            },
         }
     }
 
@@ -659,7 +681,7 @@ pub fn il2cpp_class_from_name(
 
 pub fn il2cpp_class_get_methods(
     klass: Il2CppClass,
-    iter: *mut usize,
+    iter: *mut *mut u8,
 ) -> Result<Il2CppMethodInfo, String> {
     IL2CPP_MODULE.read().il2cpp_class_get_methods(klass, iter)
 }
@@ -738,6 +760,10 @@ pub fn il2cpp_method_get_return_type(method: Il2CppMethodInfo) -> Result<Il2CppT
     IL2CPP_MODULE.read().il2cpp_method_get_return_type(method)
 }
 
+pub fn il2cpp_method_get_flags(method: Il2CppMethodInfo, iflag: *mut i32) -> Result<i32, String> {
+    IL2CPP_MODULE.read().il2cpp_method_get_flags(method, iflag)
+}
+
 pub fn il2cpp_type_get_name(itype: Il2CppType) -> Result<*const i8, String> {
     IL2CPP_MODULE.read().il2cpp_type_get_name(itype)
 }
@@ -770,5 +796,6 @@ static IL2CPP_FUNCTIONS_NAMES: LazyLock<Vec<String>> = LazyLock::new(|| {
         "il2cpp_method_get_param_count".to_string(),
         "il2cpp_method_get_param_name".to_string(),
         "il2cpp_method_get_return_type".to_string(),
+        "il2cpp_method_get_flags".to_string(),
     ])
 });

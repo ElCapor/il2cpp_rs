@@ -1,9 +1,24 @@
 use crate::il2cpp::{
-    assembly_get_image, class_get_fields, class_get_name, class_get_namespace, class_get_parent, classes::{assembly::Assembly, class::{Class, ClassInner}, field::FieldInner, itype::TypeInner}, domain_get_assemblies, field_get_name, field_get_offset, field_get_type, il2cpp_sys::c_types::{Il2CppDomain, Il2CppImage}, image_get_class, image_get_class_count, image_get_filename, image_get_name, type_get_name
+    assembly_get_image, class_get_fields, class_get_methods, class_get_name, class_get_namespace,
+    class_get_parent,
+    classes::{
+        assembly::Assembly,
+        class::{Class, ClassInner},
+        field::FieldInner,
+        itype::TypeInner,
+        method::{Method, MethodInner},
+    },
+    domain_get_assemblies, field_get_name, field_get_offset, field_get_type,
+    il2cpp_sys::c_types::{Il2CppDomain, Il2CppImage},
+    image_get_class, image_get_class_count, image_get_filename, image_get_name, method_get_flags,
+    method_get_name, method_get_param_count, method_get_return_type, type_get_name,
 };
 
-use std::fmt::{Debug, Formatter};
-use std::sync::{Arc};
+use std::{
+    collections::hash_set::Iter,
+    fmt::{Debug, Formatter},
+};
+use std::{ffi::c_void, sync::Arc};
 
 pub struct Cache {
     assemblies: Vec<Assembly>,
@@ -69,14 +84,13 @@ impl Cache {
                         "".to_string()
                     };
 
-                    let class = ClassInner::new(
-                        p_class,
-                        name.unwrap(),
-                        namespace.unwrap(),
-                        parent_name,
-                    );
+                    let class =
+                        ClassInner::new(p_class, name.unwrap(), namespace.unwrap(), parent_name);
                     if let Err(e) = Cache::parse_fields(&class) {
                         return Err(format!("Failed to parse fields {}", e));
+                    }
+                    if let Err(e) = Cache::parse_methods(&class) {
+                        return Err(format!("Failed to parse methods {}", e));
                     }
                     assembly.classes.push(class);
                 }
@@ -116,14 +130,14 @@ impl Cache {
             }
             let type_name = type_name.unwrap();
             let type_ = TypeInner::new(itype, type_name, -1);
-            
+
             let offset = field_get_offset(field);
             if offset.is_err() {
                 continue;
             }
             let offset = offset.unwrap();
             let static_field = if offset <= 0 { true } else { false };
-            
+
             let name = name.unwrap();
             let weak_cls = Arc::downgrade(class);
             class.fields.write().unwrap().push(FieldInner::new(
@@ -134,6 +148,71 @@ impl Cache {
                 offset,
                 static_field,
                 std::ptr::null_mut(),
+            ));
+        }
+        Ok(())
+    }
+
+    pub fn parse_methods(class: &Class) -> Result<(), String> {
+        let mut iter: *mut u8 = std::ptr::null_mut();
+        let mut method: *mut u8;
+
+        loop {
+            if let Ok(mm) = class_get_methods(class.address, &mut iter) {
+                method = mm;
+            } else {
+                break;
+            }
+
+            if method.is_null() {
+                break;
+            }
+
+            let name = method_get_name(method);
+            if name.is_err() {
+                continue;
+            }
+            let name = name.unwrap();
+            let weak_cls = Arc::downgrade(class);
+
+            let return_type = method_get_return_type(method);
+            if return_type.is_err() {
+                continue;
+            }
+
+            let return_type = return_type.unwrap();
+            let return_type_name = type_get_name(return_type);
+            if return_type_name.is_err() {
+                continue;
+            }
+            let return_type_name = return_type_name.unwrap();
+            let return_type = TypeInner::new(return_type, return_type_name, -1);
+
+            let mut iflag: i32 = 0;
+            let flags = method_get_flags(method, &mut iflag);
+            if flags.is_err() {
+                continue;
+            }
+
+            let flags = flags.unwrap();
+            let static_function = (flags & 0x10) != 0;
+            let ptr_to_func = method as *mut *mut c_void;
+            let func_ptr = unsafe { std::ptr::read(ptr_to_func) };
+
+            let arg_count = method_get_param_count(method);
+            if arg_count.is_err() {
+                continue;
+            }
+            let arg_count = arg_count.unwrap();
+
+            class.methods.write().unwrap().push(MethodInner::new(
+                method,
+                name,
+                weak_cls,
+                return_type,
+                flags,
+                static_function,
+                func_ptr as *mut u8,
             ));
         }
         Ok(())

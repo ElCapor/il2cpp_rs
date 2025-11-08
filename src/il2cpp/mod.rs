@@ -166,20 +166,11 @@ pub fn field_get_type(field: *mut u8) -> Result<Il2CppType, String> {
     il2cpp_sys::il2cpp_field_get_type(field)
 }
 
-pub fn class_get_methods(klass: Il2CppClass) -> Result<Vec<Il2CppMethodInfo>, String> {
-    let mut iter: usize = 0;
-    let mut methods = Vec::new();
-
-    match il2cpp_sys::il2cpp_class_get_methods(klass, &mut iter as *mut usize) {
-        Ok(method_ptr) => {
-            if method_ptr.is_null() {
-                return Err("Method pointer is null".to_string());
-            }
-            methods.push(method_ptr);
-            Ok(methods)
-        }
-        Err(e) => Err(format!("Failed to get methods: {}", e)),
-    }
+pub fn class_get_methods(
+    klass: Il2CppClass,
+    iter: *mut *mut u8,
+) -> Result<Il2CppMethodInfo, String> {
+    il2cpp_sys::il2cpp_class_get_methods(klass, iter)
 }
 
 pub fn method_get_name(method: Il2CppMethodInfo) -> Result<String, String> {
@@ -214,6 +205,10 @@ pub fn method_get_param_name(method: Il2CppMethodInfo, index: u32) -> Result<Str
 
 pub fn method_get_return_type(method: Il2CppMethodInfo) -> Result<Il2CppType, String> {
     il2cpp_sys::il2cpp_method_get_return_type(method)
+}
+
+pub fn method_get_flags(method: Il2CppMethodInfo, iflag: *mut i32) -> Result<i32, String> {
+    il2cpp_sys::il2cpp_method_get_flags(method, iflag)
 }
 
 pub fn type_get_name(itype: Il2CppType) -> Result<String, String> {

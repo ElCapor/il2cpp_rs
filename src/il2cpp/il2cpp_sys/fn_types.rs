@@ -13,7 +13,7 @@ pub type Il2CppClassGetParentFn = unsafe extern "C" fn(class: Il2CppClass) -> Il
 pub type Il2CppClassFromNameFn =
     unsafe extern "C" fn(image: Il2CppImage, namespace: *const i8, name: *const i8) -> Il2CppClass;
 pub type Il2CppClassGetMethodsFn =
-    unsafe extern "C" fn(klass: Il2CppClass, iter: *mut usize) -> Il2CppMethodInfo;
+    unsafe extern "C" fn(klass: Il2CppClass, iter: *mut *mut u8) -> Il2CppMethodInfo;
 pub type Il2CppMethodGetNameFn = unsafe extern "C" fn(method: Il2CppMethodInfo) -> *const i8;
 pub type Il2CppDomainGetAssembliesFn =
     unsafe extern "C" fn(domain: Il2CppDomain, size: *mut usize) -> *mut Il2CppAssembly;
@@ -31,4 +31,5 @@ pub type Il2CppMethodGetParamCountFn = unsafe extern "C" fn(method: Il2CppMethod
 pub type Il2CppMethodGetParamNameFn =
     unsafe extern "C" fn(method: Il2CppMethodInfo, index: u32) -> *const i8;
 pub type Il2CppMethodGetReturnTypeFn = unsafe extern "C" fn(method: Il2CppMethodInfo) -> Il2CppType;
+pub type Il2CppMethodGetFlagsFn = unsafe extern "C" fn(method: Il2CppMethodInfo, *mut i32) -> i32;
 pub type Il2CppTypeGetNameFn = unsafe extern "C" fn(itype: Il2CppType) -> *const i8;
