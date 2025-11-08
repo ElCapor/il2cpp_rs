@@ -10,7 +10,7 @@ license-file = "LICENSE"
 repository = "https://github.com/ElCapor/il2cpp_rs"
 homepage = "https://github.com/ElCapor/il2cpp_rs"
 keywords = ["il2cpp", "inject", "library", "unity", "hooking"]
-categories = ["api-bindings", "development-tools::debugging", "unity"]
+categories = ["api-bindings", "development-tools::ffi", "security"]
 
 [dependencies]
 windows = {version="0.62.2", features = ["Win32_Foundation", "Win32_System_Console", "Win32_System_LibraryLoader"]}
