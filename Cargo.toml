@@ -9,7 +9,7 @@ readme = "README.md"
 license-file = "LICENSE"
 repository = "https://github.com/ElCapor/il2cpp_rs"
 homepage = "https://github.com/ElCapor/il2cpp_rs"
-keywords = ["il2cpp", "il2cpp-rs", "il2cpp-dll", "il2cpp-library", "il2cpp-hook", "hook", "hooks", "injection", "inject", "dll", "library", "unity"]
+keywords = ["il2cpp", "inject", "library", "unity", "hooking"]
 categories = ["api-bindings", "development-tools::debugging", "unity"]
 
 [dependencies]
