@@ -6,7 +6,7 @@ use crate::il2cpp::il2cpp_sys::c_types::Il2CppType;
 pub struct TypeInner {
     pub address: Il2CppType,
     pub name: String,
-    pub size: usize,
+    pub size: isize,
 }
 
 // Public handle used throughout the model
@@ -21,7 +21,7 @@ impl TypeInner {
         })
     }
 
-    pub fn new(address: Il2CppType, name: String, size: usize) -> Type {
+    pub fn new(address: Il2CppType, name: String, size: isize) -> Type {
         Arc::new(Self { address, name, size })
     }
 }

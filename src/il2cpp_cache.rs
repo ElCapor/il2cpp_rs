@@ -1,9 +1,5 @@
 use crate::il2cpp::{
-    assembly_get_image, class_get_fields, class_get_name, class_get_namespace, class_get_parent,
-    classes::{assembly::Assembly, class::{Class, ClassInner}, field::FieldInner, itype::TypeInner},
-    domain_get_assemblies, field_get_name,
-    il2cpp_sys::c_types::{Il2CppDomain, Il2CppImage},
-    image_get_class, image_get_class_count, image_get_filename, image_get_name,
+    assembly_get_image, class_get_fields, class_get_name, class_get_namespace, class_get_parent, classes::{assembly::Assembly, class::{Class, ClassInner}, field::FieldInner, itype::TypeInner}, domain_get_assemblies, field_get_name, field_get_offset, field_get_type, il2cpp_sys::c_types::{Il2CppDomain, Il2CppImage}, image_get_class, image_get_class_count, image_get_filename, image_get_name, type_get_name
 };
 
 use std::fmt::{Debug, Formatter};
@@ -108,15 +104,35 @@ impl Cache {
                 continue;
             }
 
+            let itype = field_get_type(field);
+            if itype.is_err() {
+                continue;
+            }
+
+            let itype = itype.unwrap();
+            let type_name = type_get_name(itype);
+            if type_name.is_err() {
+                continue;
+            }
+            let type_name = type_name.unwrap();
+            let type_ = TypeInner::new(itype, type_name, -1);
+            
+            let offset = field_get_offset(field);
+            if offset.is_err() {
+                continue;
+            }
+            let offset = offset.unwrap();
+            let static_field = if offset <= 0 { true } else { false };
+            
             let name = name.unwrap();
             let weak_cls = Arc::downgrade(class);
             class.fields.write().unwrap().push(FieldInner::new(
                 field,
                 name,
-                TypeInner::default(),
+                type_,
                 weak_cls,
-                0,
-                false,
+                offset,
+                static_field,
                 std::ptr::null_mut(),
             ));
         }

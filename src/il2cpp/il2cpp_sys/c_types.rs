@@ -4,6 +4,7 @@ pub type Il2CppAssembly = *mut u8;
 pub type Il2CppImage = *mut u8;
 pub type Il2CppClass = *mut u8;
 pub type Il2CppMethodInfo = *mut u8;
+pub type Il2CppFieldInfo = *mut u8;
 pub type Il2CppType = *mut u8;
 pub type Il2CppObject = *mut u8;
 pub type Il2CppString = *mut u8;

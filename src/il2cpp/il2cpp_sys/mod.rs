@@ -32,6 +32,7 @@ struct Il2CppFunctions {
     pub class_get_fields: Option<Il2CppClassGetFieldsFn>,
     pub field_get_name: Option<Il2CppFieldGetNameFn>,
     pub field_get_offset: Option<Il2CppFieldGetOffsetFn>,
+    pub field_get_type: Option<Il2CppFieldGetTypeFn>,
     pub method_get_param_count: Option<Il2CppMethodGetParamCountFn>,
     pub method_get_param_name: Option<Il2CppMethodGetParamNameFn>,
     pub method_get_return_type: Option<Il2CppMethodGetReturnTypeFn>,
@@ -61,6 +62,7 @@ impl Il2CppFunctions {
             class_get_fields: None,
             field_get_name: None,
             field_get_offset: None,
+            field_get_type: None,
             method_get_param_count: None,
             method_get_param_name: None,
             method_get_return_type: None,
@@ -217,6 +219,8 @@ impl Il2CppDll {
             Some(self.invoke_mut::<Il2CppFieldGetNameFn>("il2cpp_field_get_name")?);
         self.functions.field_get_offset =
             Some(self.invoke_mut::<Il2CppFieldGetOffsetFn>("il2cpp_field_get_offset")?);
+        self.functions.field_get_type =
+            Some(self.invoke_mut::<Il2CppFieldGetTypeFn>("il2cpp_field_get_type")?);
         self.functions.method_get_param_count =
             Some(self.invoke_mut::<Il2CppMethodGetParamCountFn>("il2cpp_method_get_param_count")?);
         self.functions.method_get_param_name =
@@ -269,6 +273,7 @@ impl Il2CppDll {
             "il2cpp_field_get_offset: {:?}",
             self.functions.field_get_offset
         );
+        println!("il2cpp_field_get_type: {:?}", self.functions.field_get_type);
         println!(
             "il2cpp_method_get_param_count: {:?}",
             self.functions.method_get_param_count
@@ -439,7 +444,7 @@ impl Il2CppDll {
         }
     }
 
-    pub fn il2cpp_field_get_name(&self, field: *mut u8) -> Result<*const i8, String> {
+    pub fn il2cpp_field_get_name(&self, field: Il2CppFieldInfo) -> Result<*const i8, String> {
         match self.functions.field_get_name {
             Some(field_get_name) => Ok(unsafe { field_get_name(field) }),
             None => match self.invoke::<Il2CppFieldGetNameFn>("il2cpp_field_get_name") {
@@ -449,7 +454,7 @@ impl Il2CppDll {
         }
     }
 
-    pub fn il2cpp_field_get_offset(&self, field: *mut u8) -> Result<u32, String> {
+    pub fn il2cpp_field_get_offset(&self, field: Il2CppFieldInfo) -> Result<i32, String> {
         match self.functions.field_get_offset {
             Some(field_get_offset) => Ok(unsafe { field_get_offset(field) }),
             None => match self.invoke::<Il2CppFieldGetOffsetFn>("il2cpp_field_get_offset") {
@@ -580,6 +585,16 @@ impl Il2CppDll {
             },
         }
     }
+
+    pub fn il2cpp_field_get_type(&self, field: Il2CppFieldInfo) -> Result<Il2CppType, String> {
+        match self.functions.field_get_type {
+            Some(field_get_type) => Ok(unsafe { field_get_type(field) }),
+            None => match self.invoke::<Il2CppFieldGetTypeFn>("il2cpp_field_get_type") {
+                Ok(field_get_type) => Ok(unsafe { field_get_type(field) }),
+                Err(e) => Err(format!("Failed to invoke il2cpp_field_get_type: {}", e)),
+            },
+        }
+    }
 }
 
 unsafe impl Send for Il2CppDll {}
@@ -694,12 +709,16 @@ pub fn il2cpp_class_get_fields(klass: Il2CppClass, iter: *mut *mut u8) -> Result
     IL2CPP_MODULE.read().il2cpp_class_get_fields(klass, iter)
 }
 
-pub fn il2cpp_field_get_name(field: *mut u8) -> Result<*const i8, String> {
+pub fn il2cpp_field_get_name(field: Il2CppFieldInfo) -> Result<*const i8, String> {
     IL2CPP_MODULE.read().il2cpp_field_get_name(field)
 }
 
-pub fn il2cpp_field_get_offset(field: *mut u8) -> Result<u32, String> {
+pub fn il2cpp_field_get_offset(field: Il2CppFieldInfo) -> Result<i32, String> {
     IL2CPP_MODULE.read().il2cpp_field_get_offset(field)
+}
+
+pub fn il2cpp_field_get_type(field: Il2CppFieldInfo) -> Result<Il2CppType, String> {
+    IL2CPP_MODULE.read().il2cpp_field_get_type(field)
 }
 
 pub fn il2cpp_method_get_param_count(method: Il2CppMethodInfo) -> Result<u32, String> {
@@ -747,6 +766,7 @@ static IL2CPP_FUNCTIONS_NAMES: LazyLock<Vec<String>> = LazyLock::new(|| {
         "il2cpp_class_get_fields".to_string(),
         "il2cpp_field_get_name".to_string(),
         "il2cpp_field_get_offset".to_string(),
+        "il2cpp_field_get_type".to_string(),
         "il2cpp_method_get_param_count".to_string(),
         "il2cpp_method_get_param_name".to_string(),
         "il2cpp_method_get_return_type".to_string(),
