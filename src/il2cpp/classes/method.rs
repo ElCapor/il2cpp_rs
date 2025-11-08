@@ -9,7 +9,7 @@ pub struct MethodInner {
     pub class: Weak<ClassInner>,
     pub return_type: Type,
     pub flags: i32,
-    pub static_methodon: bool,
+    pub is_static: bool,
     pub function: *mut u8,
     pub args: RwLock<Vec<Arg>>,
 }
@@ -23,7 +23,7 @@ impl MethodInner {
         class: Weak<ClassInner>,
         return_type: Type,
         flags: i32,
-        static_methodon: bool,
+        is_static: bool,
         function: *mut u8,
         args: RwLock<Vec<Arg>>,
     ) -> Method {
@@ -33,7 +33,7 @@ impl MethodInner {
             class,
             return_type,
             flags,
-            static_methodon,
+            is_static,
             function,
             args,
         })

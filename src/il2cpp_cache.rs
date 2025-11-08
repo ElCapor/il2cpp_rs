@@ -16,7 +16,6 @@ use crate::il2cpp::{
     method_get_return_type, type_get_name,
 };
 
-use std::ffi::c_void;
 use std::{
     fmt::{Debug, Formatter},
     sync::{Arc, RwLock},
@@ -44,11 +43,12 @@ impl Cache {
                         if name.is_err() || file_name.is_err() {
                             continue;
                         }
-                        let asm = ret.push_mut(Assembly::new(
+                        ret.push(Assembly::new(
                             assembly,
                             name.unwrap(),
                             file_name.unwrap(),
                         ));
+                        let asm = ret.last_mut().unwrap();
                         if let Err(e) = Cache::parse_class(asm, image) {
                             return Err(format!("Failed to parse class {}", e));
                         }
@@ -159,7 +159,7 @@ impl Cache {
         let mut iter: *mut u8 = std::ptr::null_mut();
         let mut method: *mut u8;
 
-        'parsing: loop {
+        loop {
             if let Ok(mm) = class_get_methods(class.address, &mut iter) {
                 method = mm;
             } else {
@@ -198,8 +198,8 @@ impl Cache {
 
             let flags = flags.unwrap();
             let static_function = (flags & 0x10) != 0;
-            let ptr_to_func = method as *mut *mut c_void;
-            let func_ptr = unsafe { std::ptr::read(ptr_to_func) };
+            // Avoid UB: do not attempt to read function pointer from Il2CppMethodInfo layout here
+            let func_ptr = std::ptr::null_mut();
 
             let arg_count = method_get_param_count(method);
             if arg_count.is_err() {
@@ -207,28 +207,29 @@ impl Cache {
             }
             let arg_count = arg_count.unwrap();
             let args = RwLock::new(Vec::new());
+
+            let mut param_error = false;
             for i in 0..arg_count {
-                let param_name = method_get_param_name(method, i);
-                if param_name.is_err() {
-                    break 'parsing;
-                }
-                let param_name = param_name.unwrap();
+                let param_name = match method_get_param_name(method, i) {
+                    Ok(v) => v,
+                    Err(_) => { param_error = true; break; }
+                };
 
-                let param_type = method_get_param(method, i);
-                if param_type.is_err() {
-                    break 'parsing;
-                }
-                let param_type = param_type.unwrap();
+                let param_type = match method_get_param(method, i) {
+                    Ok(v) => v,
+                    Err(_) => { param_error = true; break; }
+                };
 
-                let param_type_name = type_get_name(param_type);
-                if param_type_name.is_err() {
-                    break 'parsing;
-                }
-                let param_type_name = param_type_name.unwrap();
+                let param_type_name = match type_get_name(param_type) {
+                    Ok(v) => v,
+                    Err(_) => { param_error = true; break; }
+                };
 
                 let type_ = TypeInner::new(param_type, param_type_name, -1);
                 args.write().unwrap().push(ArgInner::new(param_name, type_));
             }
+
+            if param_error { continue; }
 
             class.methods.write().unwrap().push(MethodInner::new(
                 method,

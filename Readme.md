@@ -96,16 +96,14 @@ Implementation: see `src/prof.rs` (`ScopeTimer`) and macros exported at crate ro
 
 ## Building
 
-This crate uses a nightly feature (`push_mut`) to simplify vector push+borrow patterns.
-
-- Install nightly and build:
+- Install and build:
 
 ```bash
-rustup toolchain install nightly
-cargo +nightly build
+rustup toolchain install stable
+cargo build
 ```
 
-- Standard dev build (if your toolchain default is nightly):
+- Standard dev build:
 
 ```bash
 cargo build

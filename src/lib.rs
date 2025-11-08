@@ -1,4 +1,3 @@
-#![feature(push_mut)]
 
 pub mod console;
 pub mod il2cpp;

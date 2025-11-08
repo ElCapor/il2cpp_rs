@@ -335,7 +335,7 @@ impl Il2CppDll {
         }
     }
 
-    pub fn il2cpp_thread_attach(&self, domain: Il2CppDomain) -> Result<(), String> {
+    pub fn il2cpp_thread_attach(&self, domain: Il2CppDomain) -> Result<Il2CppThread, String> {
         match self.functions.thread_attach {
             Some(thread_attach) => Ok(unsafe { thread_attach(domain) }),
             None => match self.invoke::<Il2CppThreadAttachFn>("il2cpp_thread_attach") {
@@ -345,11 +345,11 @@ impl Il2CppDll {
         }
     }
 
-    pub fn il2cpp_thread_detach(&self, domain: Il2CppDomain) -> Result<(), String> {
+    pub fn il2cpp_thread_detach(&self, thread: Il2CppThread) -> Result<(), String> {
         match self.functions.thread_detach {
-            Some(thread_detach) => Ok(unsafe { thread_detach(domain) }),
+            Some(thread_detach) => Ok(unsafe { thread_detach(thread) }),
             None => match self.invoke::<Il2CppThreadDetachFn>("il2cpp_thread_detach") {
-                Ok(thread_detach) => Ok(unsafe { thread_detach(domain) }),
+                Ok(thread_detach) => Ok(unsafe { thread_detach(thread) }),
                 Err(e) => Err(format!("Failed to invoke il2cpp_thread_detach: {}", e)),
             },
         }
@@ -679,7 +679,7 @@ pub fn il2cpp_domain_get() -> Result<Il2CppDomain, String> {
     IL2CPP_MODULE.read().il2cpp_domain_get()
 }
 
-pub fn il2cpp_thread_attach(domain: Il2CppDomain) -> Result<(), String> {
+pub fn il2cpp_thread_attach(domain: Il2CppDomain) -> Result<Il2CppThread, String> {
     IL2CPP_MODULE.read().il2cpp_thread_attach(domain)
 }
 

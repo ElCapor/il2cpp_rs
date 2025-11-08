@@ -30,12 +30,8 @@ pub fn resolve_function_ptr_from_name(
 
     // Explicitly convert the *const i8 to PCSTR
     let proc_address = unsafe {
-        let addr = GetProcAddress(module, PCSTR::from_raw(c_name.as_ptr() as *const u8));
-        addr
+        GetProcAddress(module, PCSTR::from_raw(c_name.as_ptr() as *const u8))
     };
-    if proc_address.is_some() {
-        Ok(Some(proc_address))
-    } else {
-        Ok(None)
-    }
+    // windows::Win32::Foundation::FARPROC is an Option<extern "system" fn()>
+    Ok(Some(proc_address))
 }

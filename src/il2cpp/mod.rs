@@ -2,7 +2,7 @@ pub mod classes;
 pub mod il2cpp_sys;
 
 use il2cpp_sys::c_types::{
-    Il2CppAssembly, Il2CppClass, Il2CppDomain, Il2CppImage, Il2CppMethodInfo, Il2CppType,
+    Il2CppAssembly, Il2CppClass, Il2CppDomain, Il2CppImage, Il2CppMethodInfo, Il2CppThread, Il2CppType,
 };
 
 use std::ffi::{CStr, CString};
@@ -13,12 +13,12 @@ pub fn get_domain() -> Result<Il2CppDomain, String> {
     il2cpp_sys::il2cpp_domain_get()
 }
 
-pub fn thread_attach(domain: Il2CppDomain) -> Result<(), String> {
+pub fn thread_attach(domain: Il2CppDomain) -> Result<Il2CppThread, String> {
     il2cpp_sys::il2cpp_thread_attach(domain)
 }
 
-pub fn thread_detach(domain: Il2CppDomain) -> Result<(), String> {
-    il2cpp_sys::il2cpp_thread_detach(domain)
+pub fn thread_detach(thread: Il2CppThread) -> Result<(), String> {
+    il2cpp_sys::il2cpp_thread_detach(thread)
 }
 
 pub fn domain_get_assemblies(domain: Il2CppDomain) -> Result<Vec<Il2CppAssembly>, String> {
@@ -48,13 +48,13 @@ pub fn assembly_get_image(assembly: Il2CppAssembly) -> Result<Il2CppImage, Strin
     il2cpp_sys::il2cpp_assembly_get_image(assembly)
 }
 
-pub fn image_get_filename(image: Il2CppMethodInfo) -> Result<String, String> {
+pub fn image_get_filename(image: Il2CppImage) -> Result<String, String> {
     match il2cpp_sys::il2cpp_image_get_filename(image) {
         Ok(c_str) => {
             if c_str.is_null() {
                 Err("Image filename is null".to_string())
             } else {
-                Ok(unsafe { CStr::from_ptr(c_str).to_str().unwrap().to_string() })
+                Ok(unsafe { CStr::from_ptr(c_str) }.to_string_lossy().into_owned())
             }
         }
 
@@ -92,20 +92,13 @@ pub fn class_from_name(
     namespace: &str,
     name: &str,
 ) -> Result<Il2CppClass, String> {
-    let c_namespace = CString::new(namespace);
-    let c_name = CString::new(name);
-    if c_namespace.is_err() || c_name.is_err() {
-        return Err("Failed to create c strings".to_string());
-    }
-
-    if c_namespace.clone().ok().is_none() || c_name.clone().ok().is_none() {
-        return Err("Failed to create c strings".to_string());
-    }
+    let c_namespace = CString::new(namespace).map_err(|e| e.to_string())?;
+    let c_name = CString::new(name).map_err(|e| e.to_string())?;
 
     il2cpp_sys::il2cpp_class_from_name(
         image,
-        c_namespace.ok().unwrap().as_ptr(),
-        c_name.ok().unwrap().as_ptr(),
+        c_namespace.as_ptr(),
+        c_name.as_ptr(),
     )
 }
 
