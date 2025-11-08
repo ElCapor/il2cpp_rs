@@ -1,27 +1,30 @@
-use super::class::Class;
-use super::itype::Type;
-#[derive(Clone)]
-pub struct Method {
-    address: *mut u8,
-    name: String,
-    class: Class,
-    return_type: Type,
-    flags: i32,
-    static_methodon: bool,
-    function: *mut u8,
+use crate::il2cpp::classes::class::ClassInner;
+use crate::il2cpp::classes::itype::Type;
+use std::sync::{Arc, Weak};
+
+pub struct MethodInner {
+    pub address: *mut u8,
+    pub name: String,
+    pub class: Weak<ClassInner>,
+    pub return_type: Type,
+    pub flags: i32,
+    pub static_methodon: bool,
+    pub function: *mut u8,
 }
 
-impl Method {
+pub type Method = Arc<MethodInner>;
+
+impl MethodInner {
     pub fn new(
         address: *mut u8,
         name: String,
-        class: Class,
+        class: Weak<ClassInner>,
         return_type: Type,
         flags: i32,
         static_methodon: bool,
         function: *mut u8,
-    ) -> Self {
-        Self {
+    ) -> Method {
+        Arc::new(Self {
             address,
             name,
             class,
@@ -29,6 +32,6 @@ impl Method {
             flags,
             static_methodon,
             function,
-        }
+        })
     }
 }

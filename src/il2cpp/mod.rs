@@ -158,8 +158,12 @@ pub fn field_get_name(field: *mut u8) -> Result<String, String> {
     }
 }
 
-pub fn field_get_offset(field: *mut u8) -> Result<u32, String> {
+pub fn field_get_offset(field: *mut u8) -> Result<i32, String> {
     il2cpp_sys::il2cpp_field_get_offset(field)
+}
+
+pub fn field_get_type(field: *mut u8) -> Result<Il2CppType, String> {
+    il2cpp_sys::il2cpp_field_get_type(field)
 }
 
 pub fn class_get_methods(klass: Il2CppClass) -> Result<Vec<Il2CppMethodInfo>, String> {

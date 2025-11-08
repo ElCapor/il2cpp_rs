@@ -1,15 +1,9 @@
 use crate::il2cpp::{
-    assembly_get_image, class_get_fields, class_get_name, class_get_namespace, class_get_parent,
-    classes::{assembly::Assembly, class::Class, field::Field, itype::Type},
-    domain_get_assemblies, field_get_name,
-    il2cpp_sys::c_types::{Il2CppDomain, Il2CppImage},
-    image_get_class, image_get_class_count, image_get_filename, image_get_name,
+    assembly_get_image, class_get_fields, class_get_name, class_get_namespace, class_get_parent, classes::{assembly::Assembly, class::{Class, ClassInner}, field::FieldInner, itype::TypeInner}, domain_get_assemblies, field_get_name, field_get_offset, field_get_type, il2cpp_sys::c_types::{Il2CppDomain, Il2CppImage}, image_get_class, image_get_class_count, image_get_filename, image_get_name, type_get_name
 };
 
-use std::{
-    fmt::{Debug, Formatter},
-    os::windows::ffi,
-};
+use std::fmt::{Debug, Formatter};
+use std::sync::{Arc};
 
 pub struct Cache {
     assemblies: Vec<Assembly>,
@@ -38,7 +32,6 @@ impl Cache {
                             name.unwrap(),
                             file_name.unwrap(),
                         ));
-                        println!("{}", asm.name);
                         if let Err(e) = Cache::parse_class(asm, image) {
                             return Err(format!("Failed to parse class {}", e));
                         }
@@ -76,29 +69,29 @@ impl Cache {
                         "".to_string()
                     };
 
-                    let class = assembly.classes.push_mut(Class::new(
+                    let class = ClassInner::new(
                         p_class,
                         name.unwrap(),
                         namespace.unwrap(),
                         parent_name,
-                    ));
-                    if let Err(e) = Cache::parse_fields(class) {
+                    );
+                    if let Err(e) = Cache::parse_fields(&class) {
                         return Err(format!("Failed to parse fields {}", e));
                     }
+                    assembly.classes.push(class);
                 }
             }
         }
         Ok(())
     }
 
-    pub fn parse_fields(class: &mut Class) -> Result<(), String> {
+    pub fn parse_fields(class: &Class) -> Result<(), String> {
         let mut iter: *mut u8 = std::ptr::null_mut();
-        let mut field: *mut u8 = std::ptr::null_mut();
+        let mut field: *mut u8;
 
         loop {
             if let Ok(ff) = class_get_fields(class.address, &mut iter) {
                 field = ff;
-                //println!("{:p}", field);
             } else {
                 break;
             }
@@ -111,15 +104,35 @@ impl Cache {
                 continue;
             }
 
+            let itype = field_get_type(field);
+            if itype.is_err() {
+                continue;
+            }
+
+            let itype = itype.unwrap();
+            let type_name = type_get_name(itype);
+            if type_name.is_err() {
+                continue;
+            }
+            let type_name = type_name.unwrap();
+            let type_ = TypeInner::new(itype, type_name, -1);
+            
+            let offset = field_get_offset(field);
+            if offset.is_err() {
+                continue;
+            }
+            let offset = offset.unwrap();
+            let static_field = if offset <= 0 { true } else { false };
+            
             let name = name.unwrap();
-            //println!("{}", name);
-            class.fields.push(Field::new(
+            let weak_cls = Arc::downgrade(class);
+            class.fields.write().unwrap().push(FieldInner::new(
                 field,
                 name,
-                Type::default(),
-                class.address,
-                0,
-                false,
+                type_,
+                weak_cls,
+                offset,
+                static_field,
                 std::ptr::null_mut(),
             ));
         }

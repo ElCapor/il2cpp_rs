@@ -2,12 +2,13 @@
 
 pub mod console;
 pub mod il2cpp;
+pub mod prof;
 
 use std::process::exit;
 use std::thread;
 
 use crate::console::wait_line_press_to_exit;
-use crate::il2cpp::{assembly_get_image, domain_get_assemblies, image_get_name, thread_attach};
+use crate::il2cpp::thread_attach;
 use crate::il2cpp_cache::Cache;
 
 mod il2cpp_cache;
@@ -34,10 +35,10 @@ pub fn entry_point() {
             println!("Domain: {:p}", domain);
             let _ = thread_attach(domain);
             println!("Attached to domain");
-            let cache = Cache::new(domain);
+            let cache = profile_call!("Cache::new", Cache::new(domain));
             match cache {
                 Ok(cache) => {
-                    println!("{:?}", cache);
+                    //println!("{:?}", cache);
                 }
                 Err(e) => {
                     println!("Error: {}", e);

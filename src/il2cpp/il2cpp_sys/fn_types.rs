@@ -24,8 +24,9 @@ pub type Il2CppImageGetClassFn =
     unsafe extern "C" fn(image: Il2CppImage, index: usize) -> Il2CppClass;
 pub type Il2CppClassGetFieldsFn =
     unsafe extern "C" fn(klass: Il2CppClass, iter: *mut *mut u8) -> *mut u8; // Il2CppField
-pub type Il2CppFieldGetNameFn = unsafe extern "C" fn(field: *mut u8) -> *const i8;
-pub type Il2CppFieldGetOffsetFn = unsafe extern "C" fn(field: *mut u8) -> u32;
+pub type Il2CppFieldGetNameFn = unsafe extern "C" fn(field: Il2CppFieldInfo) -> *const i8;
+pub type Il2CppFieldGetOffsetFn = unsafe extern "C" fn(field: Il2CppFieldInfo) -> i32;
+pub type Il2CppFieldGetTypeFn = unsafe extern "C" fn(field: Il2CppFieldInfo) -> Il2CppType;
 pub type Il2CppMethodGetParamCountFn = unsafe extern "C" fn(method: Il2CppMethodInfo) -> u32;
 pub type Il2CppMethodGetParamNameFn =
     unsafe extern "C" fn(method: Il2CppMethodInfo, index: u32) -> *const i8;
