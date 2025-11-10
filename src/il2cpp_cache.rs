@@ -23,7 +23,7 @@ use std::{
 };
 
 pub struct Cache {
-    assemblies: Vec<Assembly>,
+    pub assemblies: Vec<Assembly>,
 }
 impl Cache {
     #[allow(dead_code)]
