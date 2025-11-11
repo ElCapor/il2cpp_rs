@@ -14,6 +14,7 @@ pub type Il2CppClassFromNameFn =
     unsafe extern "C" fn(image: Il2CppImage, namespace: *const i8, name: *const i8) -> Il2CppClass;
 pub type Il2CppClassGetMethodsFn =
     unsafe extern "C" fn(klass: Il2CppClass, iter: *mut *mut u8) -> Il2CppMethodInfo;
+pub type Il2CppClassGetTypeFn = unsafe extern "C" fn(klass: Il2CppClass) -> Il2CppType;
 pub type Il2CppMethodGetNameFn = unsafe extern "C" fn(method: Il2CppMethodInfo) -> *const i8;
 pub type Il2CppDomainGetAssembliesFn =
     unsafe extern "C" fn(domain: Il2CppDomain, size: *mut usize) -> *mut Il2CppAssembly;

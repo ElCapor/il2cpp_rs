@@ -2,7 +2,8 @@ pub mod classes;
 pub mod il2cpp_sys;
 
 use il2cpp_sys::c_types::{
-    Il2CppAssembly, Il2CppClass, Il2CppDomain, Il2CppImage, Il2CppMethodInfo, Il2CppThread, Il2CppType,
+    Il2CppAssembly, Il2CppClass, Il2CppDomain, Il2CppImage, Il2CppMethodInfo, Il2CppThread,
+    Il2CppType,
 };
 
 use std::ffi::{CStr, CString};
@@ -54,7 +55,9 @@ pub fn image_get_filename(image: Il2CppImage) -> Result<String, String> {
             if c_str.is_null() {
                 Err("Image filename is null".to_string())
             } else {
-                Ok(unsafe { CStr::from_ptr(c_str) }.to_string_lossy().into_owned())
+                Ok(unsafe { CStr::from_ptr(c_str) }
+                    .to_string_lossy()
+                    .into_owned())
             }
         }
 
@@ -95,11 +98,7 @@ pub fn class_from_name(
     let c_namespace = CString::new(namespace).map_err(|e| e.to_string())?;
     let c_name = CString::new(name).map_err(|e| e.to_string())?;
 
-    il2cpp_sys::il2cpp_class_from_name(
-        image,
-        c_namespace.as_ptr(),
-        c_name.as_ptr(),
-    )
+    il2cpp_sys::il2cpp_class_from_name(image, c_namespace.as_ptr(), c_name.as_ptr())
 }
 
 pub fn class_get_fields(klass: Il2CppClass, iter: *mut *mut u8) -> Result<*mut u8, String> {
@@ -164,6 +163,10 @@ pub fn class_get_methods(
     iter: *mut *mut u8,
 ) -> Result<Il2CppMethodInfo, String> {
     il2cpp_sys::il2cpp_class_get_methods(klass, iter)
+}
+
+pub fn class_get_type(klass: Il2CppClass) -> Result<Il2CppType, String> {
+    il2cpp_sys::il2cpp_class_get_type(klass)
 }
 
 pub fn method_get_name(method: Il2CppMethodInfo) -> Result<String, String> {

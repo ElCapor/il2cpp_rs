@@ -23,6 +23,7 @@ struct Il2CppFunctions {
     pub class_get_name: Option<Il2CppClassGetNameFn>,
     pub class_get_namespace: Option<Il2CppClassGetNamespaceFn>,
     pub class_get_parent: Option<Il2CppClassGetParentFn>,
+    pub class_get_type: Option<Il2CppClassGetTypeFn>,
     pub method_get_name: Option<Il2CppMethodGetNameFn>,
     pub domain_get_assemblies: Option<Il2CppDomainGetAssembliesFn>,
     pub image_get_name: Option<Il2CppImageGetNameFn>,
@@ -55,6 +56,7 @@ impl Il2CppFunctions {
             class_get_name: None,
             class_get_namespace: None,
             class_get_parent: None,
+            class_get_type: None,
             method_get_name: None,
             domain_get_assemblies: None,
             image_get_name: None,
@@ -205,6 +207,8 @@ impl Il2CppDll {
             Some(self.invoke_mut::<Il2CppClassGetNamespaceFn>("il2cpp_class_get_namespace")?);
         self.functions.class_get_parent =
             Some(self.invoke_mut::<Il2CppClassGetParentFn>("il2cpp_class_get_parent")?);
+        self.functions.class_get_type =
+            Some(self.invoke_mut::<Il2CppClassGetTypeFn>("il2cpp_class_get_type")?);
         self.functions.method_get_name =
             Some(self.invoke_mut::<Il2CppMethodGetNameFn>("il2cpp_method_get_name")?);
         self.functions.domain_get_assemblies =
@@ -255,6 +259,7 @@ impl Il2CppDll {
             "il2cpp_class_from_name: {:?}",
             self.functions.class_from_name
         );
+        println!("il2cpp_class_get_type: {:?}", self.functions.class_get_type);
         println!(
             "il2cpp_class_get_methods: {:?}",
             self.functions.class_get_methods
@@ -639,6 +644,16 @@ impl Il2CppDll {
             },
         }
     }
+
+    pub fn il2cpp_class_get_type(&self, klass: Il2CppClass) -> Result<Il2CppType, String> {
+        match self.functions.class_get_type {
+            Some(class_get_type) => Ok(unsafe { class_get_type(klass) }),
+            None => match self.invoke::<Il2CppClassGetTypeFn>("il2cpp_class_get_type") {
+                Ok(class_get_type) => Ok(unsafe { class_get_type(klass) }),
+                Err(e) => Err(format!("Failed to invoke il2cpp_class_get_type: {}", e)),
+            },
+        }
+    }
 }
 
 unsafe impl Send for Il2CppDll {}
@@ -794,6 +809,10 @@ pub fn il2cpp_type_get_name(itype: Il2CppType) -> Result<*const i8, String> {
     IL2CPP_MODULE.read().il2cpp_type_get_name(itype)
 }
 
+pub fn il2cpp_class_get_type(klass: Il2CppClass) -> Result<Il2CppType, String> {
+    IL2CPP_MODULE.read().il2cpp_class_get_type(klass)
+}
+
 pub fn il2cpp_print_all_function_ptrs() {
     IL2CPP_MODULE.read().print_all_functions();
 }
@@ -823,5 +842,6 @@ static IL2CPP_FUNCTIONS_NAMES: LazyLock<Vec<String>> = LazyLock::new(|| {
         "il2cpp_method_get_param_name".to_string(),
         "il2cpp_method_get_return_type".to_string(),
         "il2cpp_method_get_flags".to_string(),
+        "il2cpp_class_get_type".to_string(),
     ])
 });

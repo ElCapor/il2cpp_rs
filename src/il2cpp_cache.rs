@@ -44,11 +44,7 @@ impl Cache {
                         if name.is_err() || file_name.is_err() {
                             continue;
                         }
-                        ret.push(Assembly::new(
-                            assembly,
-                            name.unwrap(),
-                            file_name.unwrap(),
-                        ));
+                        ret.push(Assembly::new(assembly, name.unwrap(), file_name.unwrap()));
                         let asm = ret.last_mut().unwrap();
                         if let Err(e) = Cache::parse_class(asm, image) {
                             return Err(format!("Failed to parse class {}", e));
@@ -213,24 +209,35 @@ impl Cache {
             for i in 0..arg_count {
                 let param_name = match method_get_param_name(method, i) {
                     Ok(v) => v,
-                    Err(_) => { param_error = true; break; }
+                    Err(_) => {
+                        param_error = true;
+                        break;
+                    }
                 };
 
                 let param_type = match method_get_param(method, i) {
                     Ok(v) => v,
-                    Err(_) => { param_error = true; break; }
+                    Err(_) => {
+                        param_error = true;
+                        break;
+                    }
                 };
 
                 let param_type_name = match type_get_name(param_type) {
                     Ok(v) => v,
-                    Err(_) => { param_error = true; break; }
+                    Err(_) => {
+                        param_error = true;
+                        break;
+                    }
                 };
 
                 let type_ = TypeInner::new(param_type, param_type_name, -1);
                 args.write().push(ArgInner::new(param_name, type_));
             }
 
-            if param_error { continue; }
+            if param_error {
+                continue;
+            }
 
             class.methods.write().push(MethodInner::new(
                 method,
@@ -251,6 +258,12 @@ impl Cache {
             Ok(assemblies) => Ok(Self { assemblies }),
             Err(e) => Err(e),
         }
+    }
+
+    pub fn get_assembly(&self, name: &str) -> Option<&Assembly> {
+        self.assemblies
+            .iter()
+            .find(|assembly| assembly.name == name)
     }
 }
 

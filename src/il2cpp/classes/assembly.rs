@@ -16,6 +16,10 @@ impl Assembly {
             classes: Vec::new(),
         }
     }
+
+    pub fn get(&self, name: &str) -> Option<&Class> {
+        self.classes.iter().find(|c| c.name == name)
+    }
 }
 
 impl Debug for Assembly {

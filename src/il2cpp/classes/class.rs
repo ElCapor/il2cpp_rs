@@ -1,3 +1,5 @@
+use crate::il2cpp::classes::field::FieldInner;
+use crate::il2cpp::classes::method::MethodInner;
 use crate::il2cpp::classes::{field::Field, method::Method};
 use parking_lot::RwLock;
 use std::fmt::{Debug, Formatter};
@@ -24,6 +26,36 @@ impl ClassInner {
             fields: RwLock::new(Vec::new()),
             methods: RwLock::new(Vec::new()),
         })
+    }
+
+    pub fn get_field(&self, name: &str) -> Option<Field> {
+        let guard = self.fields.read();
+        guard.iter().find(|f| f.name == name).cloned()
+    }
+
+    pub fn get_method(&self, name: &str, args: Vec<&str>) -> Option<Method> {
+        let guard = self.methods.read();
+        guard
+            .iter()
+            .find(|m| {
+                if m.name.trim() == name.trim() {
+                    if m.args.read().is_empty() && args.is_empty() {
+                        return true;
+                    } else if m.args.read().len() == args.len() {
+                        for (arg, arg2) in m.args.read().iter().zip(args.iter()) {
+                            if arg.itype.name != arg2.to_string() {
+                                return false;
+                            }
+                        }
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    false
+                }
+            })
+            .cloned()
     }
 }
 

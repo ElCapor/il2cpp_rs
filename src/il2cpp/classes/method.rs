@@ -39,6 +39,10 @@ impl MethodInner {
             args,
         })
     }
+
+    pub unsafe fn callable<T>(&self) -> T {
+        unsafe { std::mem::transmute_copy(&self.function) }
+    }
 }
 
 unsafe impl Send for MethodInner {}
