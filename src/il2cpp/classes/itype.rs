@@ -22,6 +22,13 @@ impl TypeInner {
     }
 
     pub fn new(address: Il2CppType, name: String, size: isize) -> Type {
-        Arc::new(Self { address, name, size })
+        Arc::new(Self {
+            address,
+            name,
+            size,
+        })
     }
 }
+
+unsafe impl Send for TypeInner {}
+unsafe impl Sync for TypeInner {}

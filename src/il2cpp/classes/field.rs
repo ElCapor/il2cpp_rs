@@ -53,3 +53,6 @@ impl Debug for FieldInner {
         Ok(())
     }
 }
+
+unsafe impl Send for FieldInner {}
+unsafe impl Sync for FieldInner {}

@@ -30,3 +30,6 @@ impl Debug for Assembly {
         Ok(())
     }
 }
+
+unsafe impl Send for Assembly {}
+unsafe impl Sync for Assembly {}

@@ -41,3 +41,6 @@ impl Debug for ClassInner {
         Ok(())
     }
 }
+
+unsafe impl Send for ClassInner {}
+unsafe impl Sync for ClassInner {}

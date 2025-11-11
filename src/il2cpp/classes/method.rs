@@ -40,3 +40,6 @@ impl MethodInner {
         })
     }
 }
+
+unsafe impl Send for MethodInner {}
+unsafe impl Sync for MethodInner {}
