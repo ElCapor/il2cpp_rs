@@ -84,4 +84,5 @@ impl<T> Il2CppArray<T> {
     }
 }
 
+pub type ArrayInner = Il2CppArrayHeader;
 pub type Array<T> = Il2CppArray<T>;
