@@ -1,6 +1,10 @@
 pub mod arg;
+pub mod array;
 pub mod assembly;
 pub mod class;
 pub mod field;
 pub mod itype;
 pub mod method;
+pub mod object;
+pub mod string;
+pub mod unity_object;
