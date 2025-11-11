@@ -2,14 +2,14 @@ use crate::{il2cpp::classes::object::ObjectInner, il2cpp_view};
 use std::{ffi::OsString, os::windows::ffi::OsStringExt, ptr::NonNull};
 
 il2cpp_view! {
-    pub struct UnityString {
+    pub struct Il2CppString {
         pub obj: ObjectInner,
         pub m_string_length: i32,
         pub m_first_char: [u16; 32],
     }
 }
 
-impl UnityStringView<'_> {
+impl<'a> Il2CppStringView<'a> {
     /// Length in characters
     pub fn len(&self) -> usize {
         unsafe { self.ptr.as_ref().m_string_length as usize }
@@ -34,3 +34,6 @@ impl UnityStringView<'_> {
         OsString::from_wide(slice).to_string_lossy().into_owned()
     }
 }
+
+pub type UnityStringInner = Il2CppStringInner;
+pub type UnityString<'a> = Il2CppStringView<'a>;
