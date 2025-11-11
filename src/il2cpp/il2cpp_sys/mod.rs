@@ -40,6 +40,7 @@ struct Il2CppFunctions {
     pub method_get_flags: Option<Il2CppMethodGetFlagsFn>,
     pub method_get_param: Option<Il2CppMethodGetParamFn>,
     pub type_get_name: Option<Il2CppTypeGetNameFn>,
+    pub type_get_object: Option<Il2CppTypeGetObjectFn>,
 }
 
 impl Il2CppFunctions {
@@ -73,6 +74,7 @@ impl Il2CppFunctions {
             method_get_flags: None,
             method_get_param: None,
             type_get_name: None,
+            type_get_object: None,
         }
     }
 }
@@ -241,6 +243,8 @@ impl Il2CppDll {
             Some(self.invoke_mut::<Il2CppMethodGetParamFn>("il2cpp_method_get_param")?);
         self.functions.type_get_name =
             Some(self.invoke_mut::<Il2CppTypeGetNameFn>("il2cpp_type_get_name")?);
+        self.functions.type_get_object =
+            Some(self.invoke_mut::<Il2CppTypeGetObjectFn>("il2cpp_type_get_object")?);
         Ok(())
     }
 
@@ -308,6 +312,10 @@ impl Il2CppDll {
             self.functions.method_get_param
         );
         println!("il2cpp_type_get_name: {:?}", self.functions.type_get_name);
+        println!(
+            "il2cpp_type_get_object: {:?}",
+            self.functions.type_get_object
+        );
     }
 
     pub fn il2cpp_init(&self) -> Result<(), String> {
@@ -654,6 +662,16 @@ impl Il2CppDll {
             },
         }
     }
+
+    pub fn il2cpp_type_get_object(&self, itype: Il2CppType) -> Result<Il2CppObject, String> {
+        match self.functions.type_get_object {
+            Some(type_get_object) => Ok(unsafe { type_get_object(itype) }),
+            None => match self.invoke::<Il2CppTypeGetObjectFn>("il2cpp_type_get_object") {
+                Ok(type_get_object) => Ok(unsafe { type_get_object(itype) }),
+                Err(e) => Err(format!("Failed to invoke il2cpp_type_get_object: {}", e)),
+            },
+        }
+    }
 }
 
 unsafe impl Send for Il2CppDll {}
@@ -811,6 +829,10 @@ pub fn il2cpp_type_get_name(itype: Il2CppType) -> Result<*const i8, String> {
 
 pub fn il2cpp_class_get_type(klass: Il2CppClass) -> Result<Il2CppType, String> {
     IL2CPP_MODULE.read().il2cpp_class_get_type(klass)
+}
+
+pub fn il2cpp_type_get_object(itype: Il2CppType) -> Result<Il2CppObject, String> {
+    IL2CPP_MODULE.read().il2cpp_type_get_object(itype)
 }
 
 pub fn il2cpp_print_all_function_ptrs() {

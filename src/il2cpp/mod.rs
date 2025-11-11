@@ -8,7 +8,7 @@ use il2cpp_sys::c_types::{
 
 use std::ffi::{CStr, CString};
 
-use crate::il2cpp::il2cpp_sys::il2cpp_class_get_fields;
+use crate::il2cpp::il2cpp_sys::{c_types::Il2CppObject, il2cpp_class_get_fields};
 
 pub fn get_domain() -> Result<Il2CppDomain, String> {
     il2cpp_sys::il2cpp_domain_get()
@@ -221,6 +221,13 @@ pub fn type_get_name(itype: Il2CppType) -> Result<String, String> {
             }
         }
         Err(e) => Err(format!("Failed to get type name: {}", e)),
+    }
+}
+
+pub fn type_get_object(itype: Il2CppType) -> Result<Il2CppObject, String> {
+    match il2cpp_sys::il2cpp_type_get_object(itype) {
+        Ok(object) => Ok(object),
+        Err(e) => Err(format!("Failed to get type object: {}", e)),
     }
 }
 
