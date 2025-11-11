@@ -15,3 +15,4 @@ categories = ["api-bindings", "development-tools::ffi", "security"]
 [dependencies]
 windows = {version="0.62.2", features = ["Win32_Foundation", "Win32_System_Console", "Win32_System_LibraryLoader"]}
 parking_lot = {version="0.12.5"}
+paste = "1.0.15"

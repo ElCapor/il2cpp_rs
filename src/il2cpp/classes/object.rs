@@ -8,59 +8,20 @@ use crate::{
     },
     il2cpp_cache,
 };
-use std::{marker::PhantomData, ptr::NonNull};
+use crate::il2cpp_view;
 
 #[repr(C)]
-#[derive(Debug)]
 pub struct MonitorData {
     _unused: [u8; 0],
 }
 
-#[repr(C)]
-#[derive(Debug, Clone, Copy)]
-pub struct ObjectInner {
-    pub klass: Il2CppClass,
-    pub monitor: *mut MonitorData,
+il2cpp_view! {
+    pub struct Object {
+        pub klass: Il2CppClass,
+        pub monitor: *mut MonitorData,
+    }
 }
-
-/// A lifetime-tracked, zero-cost view over an ObjectInner
-#[derive(Copy, Clone)]
-pub struct ObjectView<'a> {
-    ptr: NonNull<ObjectInner>,
-    _marker: PhantomData<&'a ObjectInner>,
-}
-
 impl<'a> ObjectView<'a> {
-    /// Create from a raw pointer
-    #[inline(always)]
-    pub fn from_ptr(ptr: *mut ObjectInner) -> Option<Self> {
-        NonNull::new(ptr).map(|nn| Self {
-            ptr: nn,
-            _marker: PhantomData,
-        })
-    }
-
-    /// Create from a reference (already dereferenced)
-    #[inline(always)]
-    pub fn from_ref(r: &'a ObjectInner) -> Self {
-        Self {
-            ptr: NonNull::from(r),
-            _marker: PhantomData,
-        }
-    }
-
-    /// Get the raw pointer back
-    #[inline(always)]
-    pub fn as_ptr(&self) -> *mut ObjectInner {
-        self.ptr.as_ptr()
-    }
-
-    /// Immutable access
-    #[inline(always)]
-    pub fn as_ref(&self) -> &'a ObjectInner {
-        unsafe { self.ptr.as_ref() }
-    }
-
     /// Get the class pointer (type info)
     #[inline(always)]
     pub fn klass(&self) -> *const Il2CppClass {
