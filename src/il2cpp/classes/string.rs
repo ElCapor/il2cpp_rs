@@ -1,9 +1,9 @@
-use crate::il2cpp::classes::object::Object;
+use crate::il2cpp::classes::object::ObjectInner;
 use std::{ffi::OsString, os::windows::ffi::OsStringExt, ptr::NonNull};
 
 #[repr(C)]
 pub struct Il2CppString {
-    pub obj: Object,
+    pub obj: ObjectInner,
     pub m_string_length: i32,
     pub m_first_char: [u16; 32],
 }

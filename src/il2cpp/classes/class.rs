@@ -1,5 +1,3 @@
-use crate::il2cpp::classes::field::FieldInner;
-use crate::il2cpp::classes::method::MethodInner;
 use crate::il2cpp::classes::{field::Field, method::Method};
 use parking_lot::RwLock;
 use std::fmt::{Debug, Formatter};
