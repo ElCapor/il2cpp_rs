@@ -21,6 +21,24 @@ pub trait Il2CppView<'a, Inner> {
     fn as_il2cpp_object(&self) -> *mut ObjectInner;
 }
 
+// Zero-Cost casting from a *mut Inner to a View
+pub trait Ptr2View<'a, Inner, View>
+where
+    View: Il2CppView<'a, Inner>,
+{
+    fn view(self) -> View;
+}
+
+impl<'a, Inner, View> Ptr2View<'a, Inner, View> for *mut Inner
+where
+    View: Il2CppView<'a, Inner>,
+{
+    #[inline(always)]
+    fn view(self) -> View {
+        View::from_ptr(self).expect("Failed to build view from pointer")
+    }
+}
+
 // Extension trait to provide unchecked zero-cost casts between views
 pub trait Il2CppViewCast<'a, Inner>: Il2CppView<'a, Inner> + Sized {
     /// Reinterpret this view as another view type without runtime checks.
