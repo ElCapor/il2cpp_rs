@@ -1,14 +1,15 @@
+use crate::il2cpp::classes::array::ArrayInner;
+use crate::il2cpp_view;
 use crate::{
     il2cpp::{
         classes::{
-            array::{Array, ArrayInner},
+            array::Array,
             string::{UnityString, UnityStringInner},
         },
         il2cpp_sys::c_types::Il2CppClass,
     },
     il2cpp_cache,
 };
-use crate::il2cpp_view;
 
 #[repr(C)]
 pub struct MonitorData {
@@ -59,7 +60,8 @@ impl<'a> ObjectView<'a> {
         type FindObjectsOfTypeFn = unsafe extern "C" fn(
             obj_type: *mut ObjectInner,
             include_inactve: bool,
-        ) -> *mut ArrayInner;
+        )
+            -> *mut ArrayInner<*mut ObjectInner>;
 
         let mut arg_types = Vec::new();
         arg_types.push("System.Type");

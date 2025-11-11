@@ -1,6 +1,6 @@
 use crate::{
     il2cpp::classes::{
-        object::{Object, ObjectInner, ObjectView},
+        object::{ObjectInner, ObjectView},
         string::UnityString,
     },
     il2cpp_cache,
@@ -110,6 +110,87 @@ macro_rules! il2cpp_view {
 
                 #[inline(always)]
                 fn as_il2cpp_object(&self) -> *mut crate::il2cpp::classes::object::ObjectInner { self.ptr.as_ptr() as *mut _ }
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! il2cpp_view_generic {
+    (
+        $(#[$m:meta])* $vis:vis struct $Name:ident < $($gen:tt),+ > $(where $($whr:tt)*)? {
+            $obj_vis:vis obj : $obj_ty:ty,
+            $( $field_vis:vis $field_name:ident : $field_ty:ty, )* $(,)?
+        }
+    ) => {
+        ::paste::paste! {
+            #[repr(C)]
+            $(#[$m])* $vis struct [<$Name Inner>] < $($gen),+ >
+            $(where $($whr)*)?
+            {
+                $obj_vis obj : $obj_ty,
+                $( $field_vis $field_name : $field_ty, )*
+            }
+
+            #[derive(Copy, Clone)]
+            $vis struct [<$Name View>]<'a, $($gen),+ >
+            $(where $($whr)*)?
+            {
+                ptr: ::std::ptr::NonNull<[<$Name Inner>] < $($gen),+ >>,
+                _marker: ::std::marker::PhantomData<&'a [<$Name Inner>] < $($gen),+ >>,
+            }
+
+            impl<'a, $($gen),+> [<$Name View>]<'a, $($gen),+>
+            $(where $($whr)*)?
+            {
+                #[inline(always)]
+                pub fn from_ptr(ptr: *mut [<$Name Inner>]<$($gen),+>) -> Option<Self> {
+                    ::std::ptr::NonNull::new(ptr)
+                        .map(|nn| Self { ptr: nn, _marker: ::std::marker::PhantomData })
+                }
+
+                #[inline(always)]
+                pub fn from_ref(r: &'a [<$Name Inner>]<$($gen),+>) -> Self {
+                    Self { ptr: ::std::ptr::NonNull::from(r), _marker: ::std::marker::PhantomData }
+                }
+
+                #[inline(always)]
+                pub fn as_ptr(&self) -> *mut [<$Name Inner>]<$($gen),+> {
+                    self.ptr.as_ptr()
+                }
+
+                #[inline(always)]
+                pub fn as_ref(&self) -> &'a [<$Name Inner>]<$($gen),+> {
+                    unsafe { self.ptr.as_ref() }
+                }
+
+                // `obj` is the first field, so the struct address is a valid ObjectInner pointer
+                #[inline(always)]
+                pub fn as_il2cpp_object(&self) -> *mut crate::il2cpp::classes::object::ObjectInner {
+                    self.ptr.as_ptr() as *mut _
+                }
+            }
+
+            impl<'a, $($gen),+> crate::il2cpp::classes::il2cpp_view::Il2CppView<'a, [<$Name Inner>] < $($gen),+ > >
+                for [<$Name View>]<'a, $($gen),+>
+            $(where $($whr)*)?
+            {
+                #[inline(always)]
+                fn from_ptr(ptr: *mut [<$Name Inner>]<$($gen),+>) -> Option<Self> { <Self>::from_ptr(ptr) }
+
+                #[inline(always)]
+                fn from_ref(r: &'a [<$Name Inner>]<$($gen),+>) -> Self { <Self>::from_ref(r) }
+
+                #[inline(always)]
+                fn as_ptr(&self) -> *mut [<$Name Inner>]<$($gen),+> { <Self>::as_ptr(self) }
+
+                #[inline(always)]
+                fn as_ref(&self) -> &'a [<$Name Inner>]<$($gen),+> { <Self>::as_ref(self) }
+
+                #[inline(always)]
+                fn as_il2cpp_object(&self) -> *mut crate::il2cpp::classes::object::ObjectInner {
+                    self.ptr.as_ptr() as *mut _
+                }
             }
         }
     };
