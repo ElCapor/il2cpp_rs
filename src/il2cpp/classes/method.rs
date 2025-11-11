@@ -43,6 +43,13 @@ impl MethodInner {
     pub unsafe fn callable<T>(&self) -> T {
         unsafe { std::mem::transmute_copy(&self.function) }
     }
+
+    pub fn try_callable<T>(&self) -> Result<T, String> {
+        if self.function == std::ptr::null_mut() {
+            return Err("invalid ptr".to_string());
+        }
+        Ok(unsafe { self.callable::<T>() })
+    }
 }
 
 unsafe impl Send for MethodInner {}

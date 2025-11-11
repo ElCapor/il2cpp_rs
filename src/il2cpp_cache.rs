@@ -195,8 +195,7 @@ impl Cache {
 
             let flags = flags.unwrap();
             let static_function = (flags & 0x10) != 0;
-            // Avoid UB: do not attempt to read function pointer from Il2CppMethodInfo layout here
-            let func_ptr = std::ptr::null_mut();
+            let func_ptr = unsafe { *(method as *mut *mut u8) };
 
             let arg_count = method_get_param_count(method);
             if arg_count.is_err() {
