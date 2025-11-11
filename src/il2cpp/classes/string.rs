@@ -1,5 +1,5 @@
 use crate::{il2cpp::classes::object::ObjectInner, il2cpp_view};
-use std::{ffi::OsString, os::windows::ffi::OsStringExt, ptr::NonNull};
+use std::{ffi::OsString, os::windows::ffi::OsStringExt};
 
 il2cpp_view! {
     pub struct Il2CppString {
