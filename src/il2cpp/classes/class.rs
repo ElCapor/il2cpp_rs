@@ -1,4 +1,6 @@
 use crate::il2cpp::classes::{field::Field, method::Method};
+use crate::il2cpp::il2cpp_sys::c_types::Il2CppObject;
+use crate::il2cpp::{class_get_type, type_get_object};
 use parking_lot::RwLock;
 use std::fmt::{Debug, Formatter};
 use std::sync::Arc;
@@ -54,6 +56,11 @@ impl ClassInner {
                 }
             })
             .cloned()
+    }
+
+    pub fn get_type_object(&self) -> Result<Il2CppObject, String> {
+        let type_ = class_get_type(self.address)?;
+        type_get_object(type_)
     }
 }
 
