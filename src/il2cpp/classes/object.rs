@@ -17,6 +17,9 @@ pub struct MonitorData {
     _unused: [u8; 0],
 }
 
+unsafe impl Sync for MonitorData {}
+unsafe impl Send for MonitorData {}
+
 il2cpp_view! {
     pub struct Object {
         pub klass: Il2CppClass,

@@ -129,6 +129,12 @@ macro_rules! il2cpp_view {
                 #[inline(always)]
                 fn as_il2cpp_object(&self) -> *mut crate::il2cpp::classes::object::ObjectInner { self.ptr.as_ptr() as *mut _ }
             }
+
+            unsafe impl Send for [<$Name Inner>] {}
+            unsafe impl Sync for [<$Name Inner>] {}
+
+            unsafe impl Send for [<$Name View>]<'_> {}
+            unsafe impl Sync for [<$Name View>]<'_> {}
         }
     };
 }
