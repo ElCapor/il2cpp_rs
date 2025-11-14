@@ -22,6 +22,10 @@ use std::{
     sync::Arc,
 };
 
+pub trait Il2CppCacheTrait {
+    fn get_assembly(&self, name: &str) -> Option<&Assembly>;
+}
+
 pub struct Cache {
     pub assemblies: Vec<Assembly>,
 }
@@ -258,8 +262,10 @@ impl Cache {
             Err(e) => Err(e),
         }
     }
+}
 
-    pub fn get_assembly(&self, name: &str) -> Option<&Assembly> {
+impl Il2CppCacheTrait for Cache {
+    fn get_assembly(&self, name: &str) -> Option<&Assembly> {
         self.assemblies
             .iter()
             .find(|assembly| assembly.name == name)

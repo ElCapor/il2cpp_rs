@@ -33,7 +33,8 @@ impl ClassInner {
         guard.iter().find(|f| f.name == name).cloned()
     }
 
-    pub fn get_method(&self, name: &str, args: Vec<&str>) -> Option<Method> {
+    pub fn get_method_with_args(&self, name: &str, args: Vec<&str>) -> Option<Method> {
+        // strict check path
         let guard = self.methods.read();
         guard
             .iter()
@@ -56,6 +57,11 @@ impl ClassInner {
                 }
             })
             .cloned()
+    }
+
+    pub fn get_method(&self, name: &str) -> Option<Method> {
+        let guard = self.methods.read();
+        guard.iter().find(|m| m.name == name).cloned()
     }
 
     pub fn get_type_object(&self) -> Result<Il2CppObject, String> {

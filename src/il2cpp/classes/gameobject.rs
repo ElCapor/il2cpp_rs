@@ -4,7 +4,8 @@ use crate::{
         object::{ObjectInner, ObjectView},
         unity_object::UnityObjectInner,
     },
-    il2cpp_cache, il2cpp_view,
+    il2cpp_cache::Il2CppCacheTrait,
+    il2cpp_view,
 };
 
 il2cpp_view! {
@@ -15,7 +16,7 @@ il2cpp_view! {
 pub type GameObject<'a> = GameObjectView<'a>;
 
 impl<'a> GameObject<'a> {
-    pub fn get_all_gameobjects(cache: &il2cpp_cache::Cache) -> Vec<GameObjectView<'a>> {
+    pub fn get_all_gameobjects(cache: &impl Il2CppCacheTrait) -> Vec<GameObjectView<'a>> {
         let game_object_type_obj = cache
             .get_assembly("UnityEngine.CoreModule.dll")
             .expect("Failed to get core module")

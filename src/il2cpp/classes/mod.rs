@@ -2,6 +2,7 @@ pub mod arg;
 pub mod array;
 pub mod assembly;
 pub mod class;
+pub mod component;
 pub mod field;
 pub mod gameobject;
 pub mod il2cpp_view;

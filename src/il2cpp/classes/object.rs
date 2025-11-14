@@ -1,4 +1,5 @@
 use crate::il2cpp::classes::array::ArrayInner;
+use crate::il2cpp_cache::Il2CppCacheTrait;
 use crate::il2cpp_view;
 use crate::{
     il2cpp::{
@@ -43,7 +44,7 @@ impl<'a> ObjectView<'a> {
             .expect("Failed to get UnityEngine.CoreModule.dll")
             .get("Object")
             .expect("Failed to get Object")
-            .get_method("get_name", Vec::new())
+            .get_method_with_args("get_name", Vec::new())
             .expect("Failed to find get_name method")
             .try_callable::<GetNameMethod>()
             .expect("Failed to cast get_name to GetNameMethod");
@@ -53,7 +54,7 @@ impl<'a> ObjectView<'a> {
     }
 
     pub fn find_objects_of_type(
-        cache: &il2cpp_cache::Cache,
+        cache: &impl Il2CppCacheTrait,
         obj_type: Object,
         include_inactve: bool,
     ) -> Vec<Object<'a>> {
@@ -72,7 +73,7 @@ impl<'a> ObjectView<'a> {
             .expect("Failed to get UnityEngine.CoreModule.dll")
             .get("Object")
             .expect("Failed to get Object")
-            .get_method("FindObjectsOfType", arg_types)
+            .get_method_with_args("FindObjectsOfType", arg_types)
             .expect("Failed to find FindObjectsOfType method")
             .try_callable::<FindObjectsOfTypeFn>()
             .expect("Failed to cast FindObjectsOfType to FindObjectsOfTypeFn");
