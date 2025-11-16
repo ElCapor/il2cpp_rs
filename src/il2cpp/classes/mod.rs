@@ -10,4 +10,5 @@ pub mod itype;
 pub mod method;
 pub mod object;
 pub mod string;
+pub mod transform;
 pub mod unity_object;
